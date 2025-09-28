@@ -1,0 +1,19 @@
+{
+  "instances": {
+    "HadleyLaboratory@gmail.com": {
+      "description": "HadleyLaboratory@gmail.com",
+      "base_url": "https://core.heysol.ai/api/v1",
+      "api_key_env_var": "HEYSOL_API_KEY"
+    },
+    "iDrDex@MammoChat.com": {
+      "description": "iDrDex@MammoChat.com",
+      "base_url": "https://core.heysol.ai/api/v1",
+      "api_key_env_var": "HEYSOL_API_KEY_IDRDEX_MAMMOCHAT"
+    },
+    "iDrDex@gmail.com": {
+      "description": "iDrDex@gmail.com",
+      "base_url": "https://core.heysol.ai/api/v1",
+      "api_key_env_var": "HEYSOL_API_KEY_IDRDEX_GMAIL"
+    }
+  }
+}

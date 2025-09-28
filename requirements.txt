@@ -1,0 +1,19 @@
+# Core dependencies for the HeySol API client
+requests>=2.25.0
+aiohttp>=3.8.0
+python-dotenv>=0.19.0
+typer>=0.9.0
+
+# Development dependencies (install with: pip install -r requirements-dev.txt)
+# pytest>=7.0.0
+# pytest-asyncio>=0.21.0
+# pytest-cov>=4.0.0
+# black>=22.0.0
+# isort>=5.10.0
+# mypy>=1.0.0
+# flake8>=4.0.0
+# pre-commit>=2.17.0
+
+# Documentation dependencies (install with: pip install -r requirements-docs.txt)
+# sphinx>=4.0.0
+# sphinx-rtd-theme>=1.0.0

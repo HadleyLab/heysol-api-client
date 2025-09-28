@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.manifest
+*.spec
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+*.py,cover
+.cache
+*.log
+*.pot
+*.mo
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.env
+.env*
+*.venv
+venv/
+ENV/
+.envrc
+.mypy_cache/
+.dmypy.json
+.pytest_cache/
+.tox/
+.jupyter/
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Others
+*.bak
+*.swp
+*.swo
+
+# Kilo Code
+.kilocode/
