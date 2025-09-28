@@ -2,7 +2,6 @@
 Test configuration for HeySol API client tests.
 """
 
-import os
 from pathlib import Path
 
 # Load environment variables from .env file

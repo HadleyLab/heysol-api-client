@@ -55,9 +55,9 @@
 import os
 import sys
 from pathlib import Path
+from typing import Any, Callable
 
 from dotenv import load_dotenv
-from typing import Callable, Any
 
 # Load environment variables
 load_dotenv()

@@ -31,7 +31,7 @@ def create_client(api_key: str, base_url: str = "https://core.heysol.ai/api/v1")
     return HeySolClient(api_key=api_key, base_url=base_url)
 
 
-def get_auth_from_context(ctx) -> tuple[str, str]:
+def get_auth_from_context(ctx) -> "tuple[str, str]":
     """Get resolved API key and base URL from Typer context.
 
     Raises:
@@ -47,7 +47,7 @@ def get_auth_from_context(ctx) -> tuple[str, str]:
     return api_key, base_url
 
 
-def get_auth_from_global() -> tuple[str, str]:
+def get_auth_from_global() -> "tuple[str, str]":
     """Get resolved API key and base URL from global state.
 
     Raises:

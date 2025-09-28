@@ -246,7 +246,9 @@ try:
             print("💡 Data may still be processing. Try again in a moment.")
     else:
         # MCP might return a string or other format
-        print(f"\n✅ Search completed! Result: {str(results)[:200]}{'...' if len(str(results)) > 200 else ''}")
+        print(
+            f"\n✅ Search completed! Result: {str(results)[:200]}{'...' if len(str(results)) > 200 else ''}"
+        )
         print("💡 MCP search returned non-dict format")
 
 except Exception as e:

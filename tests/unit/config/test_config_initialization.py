@@ -5,10 +5,8 @@ Unit tests for HeySolConfig initialization.
 Tests configuration initialization following fail-fast principles.
 """
 
-import pytest
 
 from heysol.config import HeySolConfig
-from heysol.exceptions import ValidationError
 
 
 def test_config_initialization():
@@ -56,7 +54,7 @@ def test_config_initialization_with_all_parameters():
         base_url="https://custom.api.com/v1",
         mcp_url="https://custom.mcp.com/v1",
         timeout=60,
-        source="custom-source"
+        source="custom-source",
     )
 
     assert config.api_key == "rc_pat_test_key_for_testing_12345678901234567890"
@@ -110,32 +108,32 @@ def test_config_initialization_empty_base_url():
 def test_config_initialization_invalid_base_url():
     """Test HeySolConfig initialization with invalid base URL."""
     # Config allows any base URL (validation happens in client)
-    config = HeySolConfig(api_key="rc_pat_test_key_for_testing_12345678901234567890", base_url="not-a-url")
+    config = HeySolConfig(
+        api_key="rc_pat_test_key_for_testing_12345678901234567890", base_url="not-a-url"
+    )
     assert config.base_url == "not-a-url"
 
 
 def test_config_initialization_base_url_without_scheme():
     """Test HeySolConfig initialization with base URL without scheme."""
     # Config allows any base URL (validation happens in client)
-    config = HeySolConfig(api_key="rc_pat_test_key_for_testing_12345678901234567890", base_url="api.example.com")
+    config = HeySolConfig(
+        api_key="rc_pat_test_key_for_testing_12345678901234567890", base_url="api.example.com"
+    )
     assert config.base_url == "api.example.com"
 
 
 def test_config_initialization_empty_source():
     """Test HeySolConfig initialization with empty source."""
     # Should not raise exception - empty source is allowed
-    config = HeySolConfig(
-        api_key="rc_pat_test_key_for_testing_12345678901234567890",
-        source=""
-    )
+    config = HeySolConfig(api_key="rc_pat_test_key_for_testing_12345678901234567890", source="")
     assert config.source == ""
 
 
 def test_config_initialization_source_with_spaces():
     """Test HeySolConfig initialization with source containing spaces."""
     config = HeySolConfig(
-        api_key="rc_pat_test_key_for_testing_12345678901234567890",
-        source="test source with spaces"
+        api_key="rc_pat_test_key_for_testing_12345678901234567890", source="test source with spaces"
     )
     assert config.source == "test source with spaces"
 
@@ -143,8 +141,7 @@ def test_config_initialization_source_with_spaces():
 def test_config_initialization_source_with_special_characters():
     """Test HeySolConfig initialization with source containing special characters."""
     config = HeySolConfig(
-        api_key="rc_pat_test_key_for_testing_12345678901234567890",
-        source="test-source_123"
+        api_key="rc_pat_test_key_for_testing_12345678901234567890", source="test-source_123"
     )
     assert config.source == "test-source_123"
 
@@ -167,19 +164,19 @@ def test_config_equality():
     config1 = HeySolConfig(
         api_key="rc_pat_test_key_for_testing_12345678901234567890",
         base_url="https://core.heysol.ai/api/v1",
-        timeout=30
+        timeout=30,
     )
 
     config2 = HeySolConfig(
         api_key="rc_pat_test_key_for_testing_12345678901234567890",
         base_url="https://core.heysol.ai/api/v1",
-        timeout=30
+        timeout=30,
     )
 
     config3 = HeySolConfig(
         api_key="rc_pat_different_key_for_testing_12345678901234567890",
         base_url="https://core.heysol.ai/api/v1",
-        timeout=30
+        timeout=30,
     )
 
     # Same configuration should be equal
@@ -195,7 +192,7 @@ def test_config_string_representation():
     """Test HeySolConfig string representation."""
     config = HeySolConfig(
         api_key="rc_pat_test_key_for_testing_12345678901234567890",
-        base_url="https://core.heysol.ai/api/v1"
+        base_url="https://core.heysol.ai/api/v1",
     )
 
     # String representation should include key information
@@ -210,20 +207,23 @@ def test_config_from_environment():
     from unittest.mock import patch
 
     # Test with environment variables set
-    with patch.dict(os.environ, {
-        'HEYSOL_API_KEY': 'rc_pat_test_key_for_testing_12345678901234567890',
-        'HEYSOL_BASE_URL': 'https://env.api.com/v1',
-        'HEYSOL_MCP_URL': 'https://env.mcp.com/v1',
-        'HEYSOL_TIMEOUT': '45',
-        'HEYSOL_SOURCE': 'env-source'
-    }):
+    with patch.dict(
+        os.environ,
+        {
+            "HEYSOL_API_KEY": "rc_pat_test_key_for_testing_12345678901234567890",
+            "HEYSOL_BASE_URL": "https://env.api.com/v1",
+            "HEYSOL_MCP_URL": "https://env.mcp.com/v1",
+            "HEYSOL_TIMEOUT": "45",
+            "HEYSOL_SOURCE": "env-source",
+        },
+    ):
         config = HeySolConfig.from_env()
 
-        assert config.api_key == 'rc_pat_test_key_for_testing_12345678901234567890'
-        assert config.base_url == 'https://env.api.com/v1'
-        assert config.mcp_url == 'https://env.mcp.com/v1'
+        assert config.api_key == "rc_pat_test_key_for_testing_12345678901234567890"
+        assert config.base_url == "https://env.api.com/v1"
+        assert config.mcp_url == "https://env.mcp.com/v1"
         assert config.timeout == 45
-        assert config.source == 'env-source'
+        assert config.source == "env-source"
 
 
 def test_config_from_environment_missing_values():
@@ -249,12 +249,12 @@ def test_config_from_environment_partial_values():
     from unittest.mock import patch
 
     # Test with only API key set
-    with patch.dict(os.environ, {
-        'HEYSOL_API_KEY': 'rc_pat_test_key_for_testing_12345678901234567890'
-    }):
+    with patch.dict(
+        os.environ, {"HEYSOL_API_KEY": "rc_pat_test_key_for_testing_12345678901234567890"}
+    ):
         config = HeySolConfig.from_env()
 
-        assert config.api_key == 'rc_pat_test_key_for_testing_12345678901234567890'
+        assert config.api_key == "rc_pat_test_key_for_testing_12345678901234567890"
         # Others should use defaults
         assert config.base_url == "https://core.heysol.ai/api/v1"
         assert config.timeout == 60

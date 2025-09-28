@@ -66,6 +66,7 @@ sys.path.insert(0, str(Path.cwd().parent))
 try:
     from src.heysol import HeySolClient
     from src.heysol.clients.api_client import HeySolAPIClient
+
     # ValidationError imported for completeness but not used in this demo
 
     print("✅ Successfully imported HeySol log management framework")

@@ -20,11 +20,13 @@ class TestLogGenerator:
         """Test basic generator functionality."""
         with patch("heysol.client.HeySolAPIClient") as mock_api_class:
             mock_api_instance = Mock()
-            mock_api_instance.iter_ingestion_logs.return_value = iter([
-                {"id": "1", "source": "test"},
-                {"id": "2", "source": "test"},
-                {"id": "3", "source": "test"}
-            ])
+            mock_api_instance.iter_ingestion_logs.return_value = iter(
+                [
+                    {"id": "1", "source": "test"},
+                    {"id": "2", "source": "test"},
+                    {"id": "3", "source": "test"},
+                ]
+            )
             mock_api_class.return_value = mock_api_instance
 
             client = HeySolClient()
@@ -39,9 +41,9 @@ class TestLogGenerator:
         """Test generator with status and space filters."""
         with patch("heysol.client.HeySolAPIClient") as mock_api_class:
             mock_api_instance = Mock()
-            mock_api_instance.iter_ingestion_logs.return_value = iter([
-                {"id": "1", "source": "test", "status": "COMPLETED"}
-            ])
+            mock_api_instance.iter_ingestion_logs.return_value = iter(
+                [{"id": "1", "source": "test", "status": "COMPLETED"}]
+            )
             mock_api_class.return_value = mock_api_instance
 
             client = HeySolClient()

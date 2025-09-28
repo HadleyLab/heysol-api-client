@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterator, List, Optional, cast
 
 from .clients.api_client import HeySolAPIClient
 from .clients.mcp_client import HeySolMCPClient
@@ -110,8 +110,8 @@ class HeySolClient:
                 result = self.mcp_client.get_spaces_via_mcp()
                 # Handle different response formats from MCP
                 if isinstance(result, dict):
-                    return result.get("spaces", result)
-                return result
+                    return cast(List[Any], result.get("spaces", result))
+                return cast(List[Any], result)
             except Exception:
                 # Fallback to API
                 pass
@@ -272,7 +272,7 @@ class HeySolClient:
         status: Optional[str] = None,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-    ):
+    ) -> Iterator[Any]:
         """Generator that yields ingestion logs for memory-efficient processing.
 
         Args:
@@ -491,7 +491,7 @@ class HeySolClient:
             return []
         return self.mcp_client.get_tool_names()
 
-    def call_tool(self, tool_name: str, **kwargs) -> Dict[str, Any]:
+    def call_tool(self, tool_name: str, **kwargs: Any) -> Dict[str, Any]:
         """Call an MCP tool directly."""
         if not self.is_mcp_available() or self.mcp_client is None:
             raise HeySolError("MCP is not available")

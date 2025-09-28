@@ -1,31 +1,37 @@
 #!/usr/bin/env python3
 """
-Comprehensive Unit Tests for RegistryConfig
+Unit Tests for RegistryConfig class with proper mocking
 
-Tests all registry configuration functions following coding standards:
+Following coding standards:
 - Unit Tests Primary: Test individual functions in isolation
 - Fail Fast: Tests must fail immediately on any deviation from expected behavior
 - No Try-Catch: Exceptions are for unrecoverable errors only
 """
 
 import json
-import os
-import tempfile
-from unittest.mock import patch, mock_open
+
+# Add the src directory to Python path
+import sys
+from pathlib import Path
+from unittest.mock import mock_open, patch
 
 import pytest
 
-from heysol.registry_config import RegistryConfig
+src_path = Path(__file__).parent.parent.parent / "src"
+sys.path.insert(0, str(src_path))
+
 from heysol.exceptions import HeySolError
+from heysol.registry_config import RegistryConfig
 
 
-class TestRegistryConfigComprehensive:
-    """Comprehensive tests for RegistryConfig class."""
+class TestRegistryConfig:
+    """Unit tests for RegistryConfig class with proper mocking."""
 
     def test_registry_config_initialization_with_env_file(self):
         """Test RegistryConfig initialization with specific env file."""
-        with patch('os.path.exists') as mock_exists, \
-             patch('heysol.registry_config.load_dotenv') as mock_load:
+        with patch("os.path.exists") as mock_exists, patch(
+            "heysol.registry_config.load_dotenv"
+        ) as mock_load:
 
             mock_exists.return_value = True
 
@@ -36,7 +42,7 @@ class TestRegistryConfigComprehensive:
 
     def test_registry_config_initialization_missing_env_file(self):
         """Test RegistryConfig initialization with missing env file."""
-        with patch('os.path.exists') as mock_exists:
+        with patch("os.path.exists") as mock_exists:
             mock_exists.return_value = False
 
             with pytest.raises(HeySolError, match="Configuration file not found"):
@@ -44,8 +50,7 @@ class TestRegistryConfigComprehensive:
 
     def test_load_instances_from_missing_config_file(self):
         """Test loading instances from missing config file."""
-        with patch('os.path.exists') as mock_exists, \
-             patch('os.path.dirname') as mock_dirname:
+        with patch("os.path.exists") as mock_exists, patch("os.path.dirname") as mock_dirname:
 
             mock_exists.return_value = False
             mock_dirname.return_value = "/test/dir"
@@ -60,16 +65,18 @@ class TestRegistryConfigComprehensive:
                 "test_instance": {
                     "api_key_env_var": "TEST_API_KEY",
                     "base_url": "https://test.com/api/v1",
-                    "description": "Test instance"
+                    "description": "Test instance",
                 }
             }
         }
 
-        with patch('os.path.exists') as mock_exists, \
-             patch('os.path.dirname') as mock_dirname, \
-             patch('builtins.open', mock_open()) as mock_file, \
-             patch('os.getenv') as mock_getenv, \
-             patch('json.load') as mock_json:
+        with patch("os.path.exists") as mock_exists, patch(
+            "os.path.dirname"
+        ) as mock_dirname, patch("builtins.open", mock_open()), patch(
+            "os.getenv"
+        ) as mock_getenv, patch(
+            "json.load"
+        ) as mock_json:
 
             mock_exists.return_value = True
             mock_dirname.return_value = "/test"
@@ -91,17 +98,20 @@ class TestRegistryConfigComprehensive:
             "instances": {
                 "default_instance": {
                     "api_key_env_var": "HEYSOL_API_KEY",
-                    "base_url": "https://default.com/api/v1"
+                    "base_url": "https://default.com/api/v1",
                 }
             }
         }
 
-        with patch('os.path.exists') as mock_exists, \
-             patch('os.path.dirname') as mock_dirname, \
-             patch('builtins.open', mock_open()) as mock_file, \
-             patch('os.getenv') as mock_getenv, \
-             patch('json.load') as mock_json, \
-             patch('heysol.registry_config.HeySolConfig') as mock_heysol_config:
+        with patch("os.path.exists") as mock_exists, patch(
+            "os.path.dirname"
+        ) as mock_dirname, patch("builtins.open", mock_open()), patch(
+            "os.getenv"
+        ) as mock_getenv, patch(
+            "json.load"
+        ) as mock_json, patch(
+            "heysol.registry_config.HeySolConfig"
+        ) as mock_heysol_config:
 
             mock_exists.return_value = True
             mock_dirname.return_value = "/test"
@@ -125,20 +135,22 @@ class TestRegistryConfigComprehensive:
             "instances": {
                 "instance_with_key": {
                     "api_key_env_var": "EXISTING_KEY",
-                    "base_url": "https://test.com/api/v1"
+                    "base_url": "https://test.com/api/v1",
                 },
                 "instance_without_key": {
                     "api_key_env_var": "MISSING_KEY",
-                    "base_url": "https://test2.com/api/v1"
-                }
+                    "base_url": "https://test2.com/api/v1",
+                },
             }
         }
 
-        with patch('os.path.exists') as mock_exists, \
-             patch('os.path.dirname') as mock_dirname, \
-             patch('builtins.open', mock_open()) as mock_file, \
-             patch('os.getenv') as mock_getenv, \
-             patch('json.load') as mock_json:
+        with patch("os.path.exists") as mock_exists, patch(
+            "os.path.dirname"
+        ) as mock_dirname, patch("builtins.open", mock_open()), patch(
+            "os.getenv"
+        ) as mock_getenv, patch(
+            "json.load"
+        ) as mock_json:
 
             mock_exists.return_value = True
             mock_dirname.return_value = "/test"
@@ -152,6 +164,7 @@ class TestRegistryConfigComprehensive:
             # Should only include instance with existing env var
             assert "instance_with_key" in instances
             assert "instance_without_key" not in instances
+            assert len(instances) == 1
 
     def test_load_instances_missing_api_key_env_var(self):
         """Test loading instances with missing api_key_env_var configuration."""
@@ -164,10 +177,9 @@ class TestRegistryConfigComprehensive:
             }
         }
 
-        with patch('os.path.exists') as mock_exists, \
-             patch('os.path.dirname') as mock_dirname, \
-             patch('builtins.open', mock_open()) as mock_file, \
-             patch('json.load') as mock_json:
+        with patch("os.path.exists") as mock_exists, patch(
+            "os.path.dirname"
+        ) as mock_dirname, patch("builtins.open", mock_open()), patch("json.load") as mock_json:
 
             mock_exists.return_value = True
             mock_dirname.return_value = "/test"
@@ -178,10 +190,9 @@ class TestRegistryConfigComprehensive:
 
     def test_load_instances_invalid_json(self):
         """Test loading instances with invalid JSON."""
-        with patch('os.path.exists') as mock_exists, \
-             patch('os.path.dirname') as mock_dirname, \
-             patch('builtins.open', mock_open()) as mock_file, \
-             patch('json.load') as mock_json:
+        with patch("os.path.exists") as mock_exists, patch(
+            "os.path.dirname"
+        ) as mock_dirname, patch("builtins.open", mock_open()), patch("json.load") as mock_json:
 
             mock_exists.return_value = True
             mock_dirname.return_value = "/test"
@@ -196,15 +207,17 @@ class TestRegistryConfigComprehensive:
             "instances": {
                 "instance1": {"api_key_env_var": "KEY1"},
                 "instance2": {"api_key_env_var": "KEY2"},
-                "instance3": {"api_key_env_var": "KEY3"}
+                "instance3": {"api_key_env_var": "KEY3"},
             }
         }
 
-        with patch('os.path.exists') as mock_exists, \
-             patch('os.path.dirname') as mock_dirname, \
-             patch('builtins.open', mock_open()) as mock_file, \
-             patch('os.getenv') as mock_getenv, \
-             patch('json.load') as mock_json:
+        with patch("os.path.exists") as mock_exists, patch(
+            "os.path.dirname"
+        ) as mock_dirname, patch("builtins.open", mock_open()), patch(
+            "os.getenv"
+        ) as mock_getenv, patch(
+            "json.load"
+        ) as mock_json:
 
             mock_exists.return_value = True
             mock_dirname.return_value = "/test"
@@ -225,16 +238,18 @@ class TestRegistryConfigComprehensive:
                 "test_instance": {
                     "api_key_env_var": "TEST_KEY",
                     "base_url": "https://test.com/api/v1",
-                    "description": "Test instance"
+                    "description": "Test instance",
                 }
             }
         }
 
-        with patch('os.path.exists') as mock_exists, \
-             patch('os.path.dirname') as mock_dirname, \
-             patch('builtins.open', mock_open()) as mock_file, \
-             patch('os.getenv') as mock_getenv, \
-             patch('json.load') as mock_json:
+        with patch("os.path.exists") as mock_exists, patch(
+            "os.path.dirname"
+        ) as mock_dirname, patch("builtins.open", mock_open()), patch(
+            "os.getenv"
+        ) as mock_getenv, patch(
+            "json.load"
+        ) as mock_json:
 
             mock_exists.return_value = True
             mock_dirname.return_value = "/test"
@@ -259,16 +274,18 @@ class TestRegistryConfigComprehensive:
             "instances": {
                 "test_instance": {
                     "api_key_env_var": "TEST_KEY",
-                    "base_url": "https://test.com/api/v1"
+                    "base_url": "https://test.com/api/v1",
                 }
             }
         }
 
-        with patch('os.path.exists') as mock_exists, \
-             patch('os.path.dirname') as mock_dirname, \
-             patch('builtins.open', mock_open()) as mock_file, \
-             patch('os.getenv') as mock_getenv, \
-             patch('json.load') as mock_json:
+        with patch("os.path.exists") as mock_exists, patch(
+            "os.path.dirname"
+        ) as mock_dirname, patch("builtins.open", mock_open()), patch(
+            "os.getenv"
+        ) as mock_getenv, patch(
+            "json.load"
+        ) as mock_json:
 
             mock_exists.return_value = True
             mock_dirname.return_value = "/test"
@@ -299,11 +316,13 @@ class TestRegistryConfigComprehensive:
             }
         }
 
-        with patch('os.path.exists') as mock_exists, \
-             patch('os.path.dirname') as mock_dirname, \
-             patch('builtins.open', mock_open()) as mock_file, \
-             patch('os.getenv') as mock_getenv, \
-             patch('json.load') as mock_json:
+        with patch("os.path.exists") as mock_exists, patch(
+            "os.path.dirname"
+        ) as mock_dirname, patch("builtins.open", mock_open()), patch(
+            "os.getenv"
+        ) as mock_getenv, patch(
+            "json.load"
+        ) as mock_json:
 
             mock_exists.return_value = True
             mock_dirname.return_value = "/test"
@@ -323,17 +342,19 @@ class TestRegistryConfigComprehensive:
             "instances": {
                 "instance_no_desc": {
                     "api_key_env_var": "TEST_KEY",
-                    "base_url": "https://test.com/api/v1"
+                    "base_url": "https://test.com/api/v1",
                     # No description specified
                 }
             }
         }
 
-        with patch('os.path.exists') as mock_exists, \
-             patch('os.path.dirname') as mock_dirname, \
-             patch('builtins.open', mock_open()) as mock_file, \
-             patch('os.getenv') as mock_getenv, \
-             patch('json.load') as mock_json:
+        with patch("os.path.exists") as mock_exists, patch(
+            "os.path.dirname"
+        ) as mock_dirname, patch("builtins.open", mock_open()), patch(
+            "os.getenv"
+        ) as mock_getenv, patch(
+            "json.load"
+        ) as mock_json:
 
             mock_exists.return_value = True
             mock_dirname.return_value = "/test"
@@ -351,10 +372,9 @@ class TestRegistryConfigComprehensive:
         """Test loading instances with empty config."""
         config_content = {"instances": {}}
 
-        with patch('os.path.exists') as mock_exists, \
-             patch('os.path.dirname') as mock_dirname, \
-             patch('builtins.open', mock_open()) as mock_file, \
-             patch('json.load') as mock_json:
+        with patch("os.path.exists") as mock_exists, patch(
+            "os.path.dirname"
+        ) as mock_dirname, patch("builtins.open", mock_open()), patch("json.load") as mock_json:
 
             mock_exists.return_value = True
             mock_dirname.return_value = "/test"
@@ -371,10 +391,9 @@ class TestRegistryConfigComprehensive:
         """Test loading instances with missing instances key."""
         config_content = {"other_key": "value"}
 
-        with patch('os.path.exists') as mock_exists, \
-             patch('os.path.dirname') as mock_dirname, \
-             patch('builtins.open', mock_open()) as mock_file, \
-             patch('json.load') as mock_json:
+        with patch("os.path.exists") as mock_exists, patch(
+            "os.path.dirname"
+        ) as mock_dirname, patch("builtins.open", mock_open()), patch("json.load") as mock_json:
 
             mock_exists.return_value = True
             mock_dirname.return_value = "/test"
@@ -386,3 +405,7 @@ class TestRegistryConfigComprehensive:
 
             # Should return empty dict when no instances key
             assert instances == {}
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])

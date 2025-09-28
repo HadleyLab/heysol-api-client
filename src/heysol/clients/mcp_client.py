@@ -8,7 +8,7 @@ and enhanced protocol features.
 
 import json
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 import requests
 
@@ -306,7 +306,7 @@ class HeySolMCPClient:
         # Use tools/call method for dynamic tool invocation
         params = {"name": tool_name, "arguments": kwargs}
 
-        return self._mcp_request("tools/call", params)
+        return cast(Dict[str, Any], self._mcp_request("tools/call", params))
 
     # Memory operations via MCP tools
     def ingest_via_mcp(

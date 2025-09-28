@@ -10,7 +10,7 @@ Covers parameter handling, error scenarios, edge cases, and cross-instance inter
 
 import sys
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 from typer.testing import CliRunner
@@ -476,9 +476,6 @@ class TestLogTransferCLIIntegration:
         if result.exit_code != 0:
             # This is expected if API is not available or credentials are wrong
             assert "Error" in result.output or "401" in result.output or "400" in result.output
-
-
-
 
 
 class TestLogTransferErrorScenarios:

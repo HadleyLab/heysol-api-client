@@ -54,7 +54,7 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Dict, Any, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from dotenv import load_dotenv
 
@@ -69,6 +69,7 @@ try:
     from src.heysol import HeySolClient
     from src.heysol.clients.api_client import HeySolAPIClient
     from src.heysol.clients.mcp_client import HeySolMCPClient
+
     # ValidationError imported for completeness but not used in this demo
 
     print("✅ Successfully imported HeySol client ecosystem")

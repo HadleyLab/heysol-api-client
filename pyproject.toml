@@ -109,6 +109,18 @@ force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
 
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+
+[tool.ruff.lint]
+# Allow sys.path.insert before imports in test files (necessary for importing from src/)
+ignore = ["E402"]
+
+[tool.ruff.lint.per-file-ignores]
+# Allow sys.path.insert before imports in test files
+"tests/**/*.py" = ["E402"]
+
 [tool.mypy]
 python_version = "3.9"
 warn_return_any = false

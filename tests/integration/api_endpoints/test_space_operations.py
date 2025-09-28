@@ -256,9 +256,7 @@ def test_space_update_metadata():
         new_description = "Updated description"
 
         update_result = client.update_space(
-            space_id=space_id,
-            name=new_name,
-            description=new_description
+            space_id=space_id, name=new_name, description=new_description
         )
         assert isinstance(update_result, dict)
 

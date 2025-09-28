@@ -10,7 +10,6 @@ import time
 import pytest
 
 from heysol.client import HeySolClient
-from heysol.exceptions import HeySolError
 
 
 def get_test_client() -> HeySolClient:

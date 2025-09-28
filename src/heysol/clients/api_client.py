@@ -6,7 +6,7 @@ without MCP (Model Context Protocol) functionality.
 """
 
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterator, List, Optional, cast
 
 import requests
 
@@ -183,7 +183,7 @@ class HeySolAPIClient:
         )
 
         response.raise_for_status()
-        return response.json()
+        return cast(Dict[str, Any], response.json())
 
     def ingest(
         self,
@@ -295,7 +295,7 @@ class HeySolAPIClient:
     def get_spaces(self) -> List[Any]:
         """Get available memory spaces using direct API."""
         result = self._make_request("GET", "spaces")
-        return result.get("spaces", result) if isinstance(result, dict) else result
+        return cast(List[Any], result.get("spaces", result) if isinstance(result, dict) else result)
 
     def create_space(self, name: str, description: str = "") -> Optional[str]:
         """Create a new memory space."""
@@ -410,7 +410,9 @@ class HeySolAPIClient:
 
         try:
             result = self._make_request("GET", "logs", params=params)
-            return result.get("logs", result) if isinstance(result, dict) else result
+            return cast(
+                List[Any], result.get("logs", result) if isinstance(result, dict) else result
+            )
         except Exception as e:
             # If logs endpoint fails, return empty list with a note
             print(f"Warning: Logs endpoint not available: {e}")
@@ -422,7 +424,7 @@ class HeySolAPIClient:
         status: Optional[str] = None,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-    ):
+    ) -> Iterator[Any]:
         """
         Generator that yields all ingestion logs for memory-efficient processing.
 
@@ -516,7 +518,9 @@ class HeySolAPIClient:
 
         try:
             result = self._make_request("GET", f"logs/{log_id}")
-            return result.get("log", result) if isinstance(result, dict) else result
+            return cast(
+                Dict[str, Any], result.get("log", result) if isinstance(result, dict) else result
+            )
         except Exception as e:
             # If specific log endpoint fails, return error info
             return {
@@ -695,7 +699,7 @@ class HeySolAPIClient:
         )
 
         response.raise_for_status()
-        return response.json()
+        return cast(Dict[str, Any], response.json())
 
     def list_webhooks(
         self,
@@ -714,7 +718,9 @@ class HeySolAPIClient:
 
         try:
             result = self._make_request("GET", "webhooks", params=params)
-            return result.get("webhooks", result) if isinstance(result, dict) else result
+            return cast(
+                List[Any], result.get("webhooks", result) if isinstance(result, dict) else result
+            )
         except Exception as e:
             # If webhooks endpoint fails, return empty list with a note
             print(f"Warning: Webhooks endpoint not available: {e}")
@@ -772,7 +778,7 @@ class HeySolAPIClient:
         )
 
         response.raise_for_status()
-        return response.json()
+        return cast(Dict[str, Any], response.json())
 
     def delete_webhook(self, webhook_id: str, confirm: bool = False) -> Dict[str, Any]:
         """Delete a webhook."""
