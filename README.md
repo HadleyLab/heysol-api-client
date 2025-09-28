@@ -6,7 +6,7 @@
 
 A comprehensive Python client for the HeySol API with MCP protocol support, memory management, and CLI tools. Built by Dexter Hadley, MD/PhD for HeySol.ai integration.
 
-**Version 1.2.0** - Production-ready with full API coverage and CLI tools.
+**Version 1.2.1** - Production-ready with full API coverage and CLI tools.
 
 ## Features
 

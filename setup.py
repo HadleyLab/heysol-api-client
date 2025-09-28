@@ -24,7 +24,7 @@ else:
 
 setup(
     name="heysol-api-client",
-    version="1.2.0",
+    version="1.2.1",
     author="Dexter Hadley, MD/PhD",
     author_email="iDrDex@HadleyLab.org",
     description="A comprehensive Python client for the HeySol API with MCP protocol support, built by Dexter Hadley, MD/PhD",

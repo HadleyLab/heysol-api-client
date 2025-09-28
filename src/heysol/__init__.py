@@ -16,7 +16,7 @@ from .exceptions import (
     ValidationError,
 )
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 __all__ = [
     "HeySolClient",  # Unified client with both API and MCP support
     "HeySolAPIClient",  # Direct API operations only
