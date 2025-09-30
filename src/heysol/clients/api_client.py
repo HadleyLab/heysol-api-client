@@ -236,7 +236,7 @@ class HeySolAPIClient:
             The response from the copy operation
         """
         if not log_entry:
-            raise ValidationError("Log entry is required for copying")
+            raise ValidationError("Log entry must contain message content")
 
         # Extract message content
         message_content = (

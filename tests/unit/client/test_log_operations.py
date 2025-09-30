@@ -203,8 +203,8 @@ class TestMetadataPreservingCopy:
         """Test copy fails fast with empty log."""
         client = HeySolClient()
 
-        with pytest.raises(ValidationError, match="Log entry is required"):
-            client.copy_log_entry(None)
+        with pytest.raises(ValidationError, match="Log entry must contain message content"):
+            client.copy_log_entry({})
 
 
 class TestIntegrationWithLiveAPI:

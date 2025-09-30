@@ -81,22 +81,13 @@ def test_memory_operations_workflow():
         episodes = search_result.episodes
 
         # Should find at least our test message
-        found_test_message = False
         for episode in episodes:
-            # Handle different episode formats (dict or string)
-            if isinstance(episode, dict):
-                content = episode.get("content", "") or episode.get("episodeBody", "")
-            else:
-                content = str(episode)
+            content = episode.get("content", "") or episode.get("episodeBody", "")
             if test_message in str(content):
-                found_test_message = True
                 break
 
         # Note: Search may not immediately find the ingested data due to processing time
         # This is expected behavior, not a failure
-        if not found_test_message:
-            # This is normal - search may not be immediate
-            pass
 
         client.close()
 

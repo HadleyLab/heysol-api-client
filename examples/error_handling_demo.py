@@ -55,6 +55,7 @@ import os
 import sys
 import time
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 from dotenv import load_dotenv
 
@@ -66,9 +67,9 @@ sys.path.insert(0, str(Path.cwd().parent))
 
 # Import with detailed error context and architecture explanation
 try:
-    from src.heysol import HeySolClient
-    from src.heysol.clients.api_client import HeySolAPIClient
-    from src.heysol.exceptions import HeySolError, ValidationError
+    from heysol import HeySolClient
+    from heysol.clients.api_client import HeySolAPIClient
+    from heysol.exceptions import HeySolError, ValidationError
 
     print("✅ Successfully imported HeySol error handling framework")
     print("   📦 HeySolClient: Unified client with error management")
@@ -82,7 +83,7 @@ try:
     print("   • Graceful degradation strategies")
 except ImportError as e:
     print(f"❌ Import failed: {e}")
-    print("💡 Install with: pip install heysol-api-client")
+    print("💡 Make sure you're running from the project root with src/ in path")
     raise
 
 
@@ -185,12 +186,14 @@ class ErrorHandler:
     - Use error data for system optimization
     """
 
-    def __init__(self):
-        self.error_log = []
-        self.retry_counts = {}
+    def __init__(self) -> None:
+        self.error_log: List[Dict[str, Any]] = []
+        self.retry_counts: Dict[str, int] = {}
         self.start_time = time.time()
 
-    def log_error(self, operation, error, context=None):
+    def log_error(
+        self, operation: str, error: Exception, context: Optional[Dict[str, Any]] = None
+    ) -> None:
         """
         Log an error with comprehensive context.
 
@@ -214,7 +217,7 @@ class ErrorHandler:
         self.error_log.append(error_info)
         print(f"❌ {operation}: {error}")
 
-    def should_retry(self, operation, max_retries=3):
+    def should_retry(self, operation: str, max_retries: int = 3) -> Tuple[bool, int]:
         """
         Determine if operation should be retried with exponential backoff.
 
@@ -237,16 +240,16 @@ class ErrorHandler:
             return True, count + 1
         return False, count
 
-    def reset_retries(self, operation):
+    def reset_retries(self, operation: str) -> None:
         """Reset retry count for operation."""
         self.retry_counts.pop(operation, None)
 
-    def get_error_summary(self):
+    def get_error_summary(self) -> str:
         """Get summary of all errors encountered."""
         if not self.error_log:
             return "✅ No errors encountered"
 
-        error_types = {}
+        error_types: Dict[str, int] = {}
         for error in self.error_log:
             error_type = error["error_type"]
             error_types[error_type] = error_types.get(error_type, 0) + 1
@@ -321,7 +324,7 @@ for category in categories:
 
 
 # Network error handling demonstration
-def test_network_errors():
+def test_network_errors() -> bool:
     """
     Test network error scenarios.
 
@@ -350,8 +353,6 @@ def test_network_errors():
         print(f"   ✅ Network error caught: {type(e).__name__}")
         print("   💡 Proper network error handling")
         return True
-
-    return False
 
 
 # Execute network error testing
@@ -434,7 +435,7 @@ for bp in best_practices:
 
 
 # Authentication error handling demonstration
-def test_authentication_errors():
+def test_authentication_errors() -> List[Dict[str, Any]]:
     """
     Test authentication error scenarios.
 
@@ -574,7 +575,7 @@ for sp in security_practices:
 
 
 # Validation error handling demonstration
-def test_validation_errors(client):
+def test_validation_errors(client: Any) -> List[Dict[str, Any]]:
     """
     Test validation error scenarios.
 
@@ -722,7 +723,7 @@ for vp in validation_practices:
 
 
 # Retry logic implementation with exponential backoff
-def test_retry_logic():
+def test_retry_logic() -> List[Dict[str, Any]]:
     """
     Test retry logic with exponential backoff.
 
@@ -737,7 +738,7 @@ def test_retry_logic():
     """
     print("\n🔄 Testing retry logic...")
 
-    def simulate_flaky_operation(attempt):
+    def simulate_flaky_operation(attempt: int) -> Dict[str, Any]:
         """
         Simulate an operation that fails initially but succeeds later.
 
@@ -759,7 +760,7 @@ def test_retry_logic():
     max_retries = 5
     operation_name = "flaky_operation"
 
-    retry_log = []
+    retry_log: List[Dict[str, Any]] = []
 
     for attempt in range(1, max_retries + 2):
         try:
@@ -881,7 +882,7 @@ for rp in retry_practices:
 
 
 # Graceful degradation implementation
-def test_graceful_degradation():
+def test_graceful_degradation() -> List[Dict[str, Any]]:
     """
     Test graceful degradation patterns.
 
@@ -1028,7 +1029,7 @@ for dp in degradation_practices:
 
 
 # Error recovery strategies implementation
-def test_error_recovery():
+def test_error_recovery() -> List[Dict[str, Any]]:
     """
     Test error recovery strategies.
 
@@ -1069,7 +1070,7 @@ def test_error_recovery():
     for scenario in recovery_scenarios:
         print(f"\n🔍 {scenario['name']}:")
         try:
-            next(scenario["simulate"]())
+            next(scenario["simulate"]())  # type: ignore
             result = {
                 "scenario": scenario["name"],
                 "recovered": False,
@@ -1077,7 +1078,7 @@ def test_error_recovery():
             }
             print("   ⚠️ No error to recover from")
         except Exception as e:
-            error_handler.log_error(scenario["name"], e)
+            error_handler.log_error(scenario["name"], e)  # type: ignore
             result = {
                 "scenario": scenario["name"],
                 "recovered": True,

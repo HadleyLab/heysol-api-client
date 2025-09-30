@@ -3,7 +3,7 @@ Shared authentication utilities for CLI commands.
 """
 
 import functools
-from typing import Optional, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 import typer
 
@@ -58,7 +58,7 @@ def resolve_credentials(
     return resolved_api_key, resolved_base_url
 
 
-def require_auth(f):
+def require_auth(f: Callable[..., Any]) -> Callable[..., Any]:
     """
     Decorator to ensure CLI commands require authentication.
 
@@ -67,7 +67,7 @@ def require_auth(f):
     """
 
     @functools.wraps(f)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         # For backward compatibility, just call the function
         return f(*args, **kwargs)
 

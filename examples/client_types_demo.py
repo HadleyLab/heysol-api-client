@@ -61,20 +61,17 @@ sys.path.insert(0, str(Path.cwd().parent))
 
 # Import with detailed error context
 try:
-    from src.heysol import HeySolClient
-    from src.heysol.clients.api_client import HeySolAPIClient
-    from src.heysol.clients.mcp_client import HeySolMCPClient
-
-    # ValidationError imported for completeness but not used in this demo
+    from heysol import HeySolClient
+    from heysol.clients.api_client import HeySolAPIClient
+    from heysol.clients.mcp_client import HeySolMCPClient
 
     print("✅ Successfully imported all HeySol client types")
     print("   📦 HeySolClient: Unified client with API + MCP")
     print("   ⚡ HeySolAPIClient: Direct HTTP API operations")
     print("   🎯 HeySolMCPClient: MCP protocol with tool discovery")
-    print("   🛡️  HeySolError, ValidationError: Exception hierarchy")
 except ImportError as e:
     print(f"❌ Import failed: {e}")
-    print("💡 Install with: pip install heysol-api-client")
+    print("💡 Make sure you're running from the project root with src/ in path")
     raise
 
 
@@ -142,7 +139,9 @@ print(f"✅ Key length: {len(api_key)} characters (recommended: > 32)")
 
 
 # Performance benchmarking function with detailed metrics
-def test_client_performance(client, client_name, operation="search"):
+def test_client_performance(
+    client: Any, client_name: str, operation: str = "search"
+) -> Dict[str, Any]:
     """
     Comprehensive performance testing with detailed metrics.
 
@@ -164,7 +163,7 @@ def test_client_performance(client, client_name, operation="search"):
         if operation == "search":
             # Search operation - tests query processing and result formatting
             result = client.search("test", limit=1)
-            episodes = result.get("episodes", [])
+            episodes = result.episodes if hasattr(result, "episodes") else []
             success = True
             result_count = len(episodes)
         elif operation == "get_spaces":
@@ -765,7 +764,7 @@ if clients["unified"] and clients["unified"]["client"]:
         # This will use MCP if available, API if not
         result = unified_client.search("fallback test", limit=1)
         print("   ✅ Search completed successfully")
-        print(f"   📊 Results: {len(result.get('episodes', []))}")
+        print(f"   📊 Results: {len(result.episodes) if hasattr(result, 'episodes') else 0}")
         print("   💡 Automatic method selection working")
     except Exception as e:
         print(f"   ❌ Search failed: {e}")

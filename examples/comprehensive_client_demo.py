@@ -66,24 +66,21 @@ sys.path.insert(0, str(Path.cwd().parent))
 
 # Import with detailed error context and architecture explanation
 try:
-    from src.heysol import HeySolClient
-    from src.heysol.clients.api_client import HeySolAPIClient
-    from src.heysol.clients.mcp_client import HeySolMCPClient
-
-    # ValidationError imported for completeness but not used in this demo
+    from heysol import HeySolClient
+    from heysol.clients.api_client import HeySolAPIClient
+    from heysol.clients.mcp_client import HeySolMCPClient
 
     print("✅ Successfully imported HeySol client ecosystem")
     print("   📦 HeySolClient: Unified client with API + MCP")
     print("   ⚡ HeySolAPIClient: Direct HTTP API operations")
     print("   🎯 HeySolMCPClient: MCP protocol with tool discovery")
-    print("   🛡️  HeySolError, ValidationError: Exception hierarchy")
     print("\n🏗️ Multi-Client Architecture:")
     print("   • Unified: Best of both worlds with fallback")
     print("   • API: High performance, no dependencies")
     print("   • MCP: Advanced features, dynamic tools")
 except ImportError as e:
     print(f"❌ Import failed: {e}")
-    print("💡 Install with: pip install heysol-api-client")
+    print("💡 Make sure you're running from the project root with src/ in path")
     raise
 
 
@@ -165,7 +162,7 @@ print("🔧 Step 2.1: Multi-Client Initialization")
 print("-" * 60)
 
 clients: Dict[str, Optional[Union[HeySolClient, HeySolAPIClient, HeySolMCPClient]]] = {}
-initialization_log: list[Dict[str, Any]] = []
+initialization_log: "list[Dict[str, Any]]" = []
 
 print("🚀 Initializing client ecosystem...")
 print("\n📊 Client Initialization Strategy:")
@@ -478,7 +475,7 @@ if isinstance(client, HeySolMCPClient):
 # Type assertion for mypy - at this point client is either HeySolClient or HeySolAPIClient
 assert not isinstance(client, HeySolMCPClient)
 
-space_ids = {}
+space_ids: Dict[str, str] = {}
 space_creation_log = []
 
 print("🚀 Creating multi-space architecture...")
@@ -534,9 +531,14 @@ for space_key, space_info in space_architecture.items():
 
         if not space_id:
             # Create new space with rich metadata
-            space_id = client.create_space(name=space_key, description=str(space_info["name"]))
-            if space_id:
-                print(f"   ✅ Created new space: {space_id[:16]}...")
+            space_result = client.create_space(name=space_key, description=str(space_info["name"]))
+            if space_result and isinstance(space_result, dict):
+                space_id = space_result.get("space_id") or space_result.get("id")
+                if space_id:
+                    print(f"   ✅ Created new space: {str(space_id)[:16]}...")
+                else:
+                    print("   ❌ Space creation returned invalid format")
+                    continue
             else:
                 print("   ❌ Space creation returned None")
                 continue
@@ -545,7 +547,9 @@ for space_key, space_info in space_architecture.items():
         try:
             # Test space with a simple operation
             test_result = client.search("test", space_ids=[space_id], limit=1)
-            print(f"   ✅ Space accessible: {len(test_result.get('episodes', []))} test results")
+            print(
+                f"   ✅ Space accessible: {len(test_result.episodes) if hasattr(test_result, 'episodes') else 0} test results"
+            )
         except Exception as e:
             print(f"   ⚠️ Space accessibility test failed: {e}")
             print("      💡 Space created but may have permission issues")
@@ -655,7 +659,7 @@ else:
 
 
 # Create comprehensive medical dataset with rich metadata
-def create_medical_dataset():
+def create_medical_dataset() -> "list[Dict[str, Any]]":
     """
     Create a comprehensive medical dataset for demonstration.
 
@@ -965,7 +969,7 @@ routing_rules = {
 }
 
 
-def assign_space(item, space_ids):
+def assign_space(item: Dict[str, Any], space_ids: Dict[str, str]) -> Optional[str]:
     """
     Intelligently assign content to appropriate space.
 
@@ -1212,7 +1216,7 @@ else:
 print("🔍 Step 5.1: Advanced Search Scenarios")
 print("-" * 60)
 
-search_scenarios: list[Dict[str, Any]] = [
+search_scenarios: "list[Dict[str, Any]]" = [
     {
         "name": "Treatment Response Analysis",
         "description": "Find high-response treatments across cancer types",
@@ -1278,7 +1282,7 @@ for scenario in search_scenarios:
             query=scenario["query"], space_ids=scenario["space_filter"], limit=scenario["limit"]
         )
 
-        episodes = results.get("episodes", [])
+        episodes = results.episodes if hasattr(results, "episodes") else []
         print(f"   ✅ Found {len(episodes)} results")
 
         # Analyze results quality
@@ -1411,7 +1415,7 @@ print("\n📊 Performance Results:")
 print(f"{'Test':<20} {'Time':<10} {'Results':<10} {'Performance':<15} {'Analysis'}")
 print("-" * 70)
 
-performance_metrics: list[Dict[str, Any]] = []
+performance_metrics: "list[Dict[str, Any]]" = []
 
 for test_name, query, *space_args in performance_tests:
     space_filter = space_args[0] if space_args else None
@@ -1422,14 +1426,22 @@ for test_name, query, *space_args in performance_tests:
         if test_name == "Metadata-rich query":
             # This would be a future feature for metadata filtering
             query_str = str(query).split(" > ")[0]
-            space_ids_param = space_filter if isinstance(space_filter, list) else None
+            space_ids_param = (
+                [s for s in space_filter if s is not None]
+                if isinstance(space_filter, list)
+                else None
+            )
             results = client.search(query_str, space_ids=space_ids_param, limit=3)
         else:
             query_str = str(query)
-            space_ids_param = space_filter if isinstance(space_filter, list) else None
+            space_ids_param = (
+                [s for s in space_filter if s is not None]
+                if isinstance(space_filter, list)
+                else None
+            )
             results = client.search(query_str, space_ids=space_ids_param, limit=3)
 
-        episodes = results.get("episodes", [])
+        episodes = results.episodes if hasattr(results, "episodes") else []
         end_time = time.time()
         duration = end_time - start_time
 
@@ -1587,9 +1599,9 @@ batch_data = [
 batch_results = []
 batch_start_time = time.time()
 
-for i, item in enumerate(batch_data, 1):
+for i, batch_item in enumerate(batch_data, 1):
     try:
-        result = client.ingest(item, space_id=space_ids.get("clinical_trials"))
+        result = client.ingest(batch_item, space_id=space_ids.get("clinical_trials"))
         batch_results.append({"success": True, "id": result.get("id"), "item": i})
         print(f"   ✅ Item {i}: Success")
     except Exception as e:
@@ -1616,7 +1628,7 @@ print("\n💚 Pattern 2: Health Checking and Monitoring")
 print("   Strategy: Regular health checks with detailed reporting")
 
 
-def perform_health_check(client, space_ids):
+def perform_health_check(client: Any, space_ids: Dict[str, str]) -> Dict[str, Any]:
     """
     Perform comprehensive health check.
 
@@ -1627,7 +1639,7 @@ def perform_health_check(client, space_ids):
     Returns:
         dict: Health check results and recommendations
     """
-    health_results = {
+    health_results: Dict[str, Any] = {
         "timestamp": time.time(),
         "checks": [],
         "overall_status": "unknown",

@@ -66,7 +66,6 @@ class TestHeySolClient:
         ) as mock_mcp:
 
             # Test with MCP preferred and available
-            mock_mcp_instance = Mock()
             client = HeySolClient(api_key=TEST_API_KEY, prefer_mcp=True, skip_mcp_init=True)
             client.mcp_available = True
             client.mcp_client = mock_mcp.return_value

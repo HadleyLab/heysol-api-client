@@ -2,7 +2,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 # Add the parent directory to Python path for imports
 parent_dir = Path(__file__).parent.parent
@@ -52,7 +52,7 @@ def get_auth_from_global() -> "tuple[str, str]":
         typer.echo("API key is required. Use --api-key or --user option.", err=True)
         raise typer.Exit(1)
 
-    return _global_api_key, _global_base_url or "https://core.heysol.ai/api/v1"
+    return _global_api_key, cast(str, _global_base_url)  # type: ignore[unreachable]
 
 
 def format_json_output(data: Any, pretty: bool = False) -> str:

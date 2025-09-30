@@ -62,20 +62,20 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path.cwd().parent))
+# Add src directory to path for imports
+sys.path.insert(0, str(Path.cwd() / "src"))
 
 # Import with comprehensive error handling
 try:
-    from src.heysol.clients.api_client import HeySolAPIClient
-    from src.heysol.exceptions import ValidationError
+    from heysol.clients.api_client import HeySolAPIClient
+    from heysol.exceptions import HeySolError
 
     print("✅ Successfully imported HeySol API client")
     print("   📦 HeySolAPIClient: Direct HTTP API operations")
-    print("   🛡️  HeySolError, ValidationError: Exception handling")
+    print("   🛡️  HeySolError: Exception handling")
 except ImportError as e:
     print(f"❌ Import failed: {e}")
-    print("💡 Install with: pip install heysol-api-client")
+    print("💡 Make sure you're running from the project root with src/ in path")
     raise
 
 
@@ -121,7 +121,7 @@ try:
     print(f"   🏠 Source: {client.source}")
     print(f"   ⏱️  Timeout: {client.timeout} seconds")
 
-except ValidationError as e:
+except HeySolError as e:
     print(f"❌ Validation error: {e}")
     print("💡 Check your API key format and permissions")
     raise
@@ -356,7 +356,7 @@ search_queries = [
     "cancer treatment outcomes",
 ]
 
-search_results = []
+search_results: "list[dict[str, Any]]" = []
 
 for query in search_queries:
     print(f"\n🔎 Searching for: '{query}'")
@@ -364,7 +364,7 @@ for query in search_queries:
     try:
         results = client.search(query=query, space_ids=[space_id], limit=3)
 
-        episodes = results.get("episodes", [])
+        episodes = results.episodes if hasattr(results, "episodes") else []
         print(f"   ✅ Found {len(episodes)} results")
 
         for i, episode in enumerate(episodes, 1):
@@ -399,7 +399,7 @@ print(f"🔍 Knowledge graph query: '{kg_query}'")
 try:
     kg_results = client.search_knowledge_graph(query=kg_query, space_id=space_id, limit=5, depth=2)
 
-    entities = kg_results.get("entities", [])
+    entities = kg_results.get("entities", []) if isinstance(kg_results, dict) else []
     print(f"✅ Found {len(entities)} related entities")
 
     if entities:
@@ -543,8 +543,8 @@ for scenario in error_scenarios:
         scenario["test"]()
         print("   ⚠️  Unexpected: No error raised")
         error_results.append({"scenario": scenario["name"], "error": None, "success": True})
-    except ValidationError as e:
-        print(f"   ✅ ValidationError caught: {e}")
+    except HeySolError as e:
+        print(f"   ✅ HeySolError caught: {e}")
         error_results.append(
             {
                 "scenario": scenario["name"],

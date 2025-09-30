@@ -3,7 +3,7 @@ Unit tests for Pydantic models.
 """
 
 import pytest
-from pydantic import ValidationError
+from pydantic import HttpUrl, ValidationError
 
 from heysol.models import (
     CreateSpaceRequest,
@@ -72,10 +72,10 @@ class TestIngestRequest:
     def test_valid_ingest_request(self):
         """Test valid ingest request creation."""
         request = IngestRequest(
-            episode_body="Test content",
+            episodeBody="Test content",
             source="test-source",
-            session_id="session-123",
-            space_id="space-456",
+            sessionId="session-123",
+            spaceId="space-456",
         )
         assert request.episode_body == "Test content"
         assert request.source == "test-source"
@@ -84,15 +84,15 @@ class TestIngestRequest:
 
     def test_ingest_request_validation(self):
         """Test ingest request validation."""
-        with pytest.raises(ValidationError, match="episode_body"):
-            IngestRequest(episode_body="", source="test")
+        with pytest.raises(ValidationError, match="episodeBody"):
+            IngestRequest(episodeBody="", source="test")
 
         with pytest.raises(ValidationError, match="source"):
-            IngestRequest(episode_body="content", source="")
+            IngestRequest(episodeBody="content", source="")
 
     def test_ingest_request_defaults(self):
         """Test ingest request default values."""
-        request = IngestRequest(episode_body="content", source="test")
+        request = IngestRequest(episodeBody="content", source="test")
         assert request.session_id == ""
         assert request.space_id is None
         assert request.metadata == {}
@@ -172,7 +172,7 @@ class TestRegisterWebhookRequest:
     def test_valid_register_webhook_request(self):
         """Test valid register webhook request."""
         request = RegisterWebhookRequest(
-            url="https://example.com/webhook",
+            url=HttpUrl("https://example.com/webhook"),
             secret="webhook-secret-123",
         )
         assert str(request.url) == "https://example.com/webhook"
@@ -181,10 +181,10 @@ class TestRegisterWebhookRequest:
     def test_register_webhook_validation(self):
         """Test register webhook request validation."""
         with pytest.raises(ValidationError, match="Input should be a valid URL"):
-            RegisterWebhookRequest(url="invalid-url", secret="secret")
+            RegisterWebhookRequest(url="not-a-url", secret="secret")
 
         with pytest.raises(ValidationError, match="String should have at least 1 character"):
-            RegisterWebhookRequest(url="https://example.com", secret="")
+            RegisterWebhookRequest(url=HttpUrl("https://example.com"), secret="")
 
 
 class TestUpdateWebhookRequest:
@@ -193,7 +193,7 @@ class TestUpdateWebhookRequest:
     def test_valid_update_webhook_request(self):
         """Test valid update webhook request."""
         request = UpdateWebhookRequest(
-            url="https://example.com/webhook",
+            url=HttpUrl("https://example.com/webhook"),
             events=["push", "pull_request"],
             secret="secret-123",
             active=False,
@@ -207,7 +207,7 @@ class TestUpdateWebhookRequest:
         """Test update webhook events validation."""
         with pytest.raises(ValidationError, match="Events list cannot be empty"):
             UpdateWebhookRequest(
-                url="https://example.com",
+                url=HttpUrl("https://example.com"),
                 events=[],
                 secret="secret",
             )
@@ -215,7 +215,9 @@ class TestUpdateWebhookRequest:
     def test_update_webhook_validation(self):
         """Test update webhook request validation."""
         with pytest.raises(ValidationError, match="Input should be a valid URL"):
-            UpdateWebhookRequest(url="invalid-url", events=["push"], secret="secret")
+            UpdateWebhookRequest(
+                url="not-a-url", events=["push"], secret="secret"
+            )
 
         with pytest.raises(ValidationError, match="String should have at least 1 character"):
-            UpdateWebhookRequest(url="https://example.com", events=["push"], secret="")
+            UpdateWebhookRequest(url=HttpUrl("https://example.com"), events=["push"], secret="")

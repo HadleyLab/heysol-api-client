@@ -169,7 +169,7 @@ class TestLogTransferOperations:
             "total_count": 3,
             "message": "Preview: Would move 3 logs",
         }
-        result = mock_source_client.move_logs_to_instance(
+        mock_source_client.move_logs_to_instance(
             target_client=mock_target_client,
             source="test-source",
             confirm=False,
