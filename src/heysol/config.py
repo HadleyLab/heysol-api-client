@@ -14,4 +14,10 @@ DEFAULT_SOURCE = "heysol-api-client"
 DEFAULT_MCP_URL = f"https://core.heysol.ai/api/v1/mcp?source={DEFAULT_SOURCE}"
 DEFAULT_PROFILE_URL = "https://core.heysol.ai/api/profile"
 
-__all__ = ["HeySolConfig", "DEFAULT_BASE_URL", "DEFAULT_SOURCE", "DEFAULT_MCP_URL", "DEFAULT_PROFILE_URL"]
+__all__ = [
+    "HeySolConfig",
+    "DEFAULT_BASE_URL",
+    "DEFAULT_SOURCE",
+    "DEFAULT_MCP_URL",
+    "DEFAULT_PROFILE_URL",
+]

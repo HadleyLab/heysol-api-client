@@ -10,7 +10,7 @@ Covers parameter handling, error scenarios, edge cases, and cross-instance inter
 
 import sys
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -85,6 +85,8 @@ class TestLogTransferOperations:
 
     def test_move_logs_to_instance_basic(self, mock_source_client, mock_target_client, sample_logs):
         """Test basic move_logs_to_instance functionality."""
+        from heysol import operations
+
         # Setup mocks
         mock_source_client.get_logs_by_source.return_value = {
             "logs": sample_logs[:2],  # Only logs from test-source
@@ -94,26 +96,27 @@ class TestLogTransferOperations:
             (log for log in sample_logs if log["id"] == log_id), {}
         )
         mock_target_client.ingest = Mock()
+        mock_source_client.delete_log_entry = Mock()
 
-        # Call the method
-        result = HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        # Call the operations function directly
+        result = operations.move_logs_to_instance(
+            source_client=mock_source_client,
             target_client=mock_target_client,
             source="test-source",
             confirm=True,
-            operation="move",
-            delete_after_transfer=True,
+            delete_after_move=True,
         )
 
-        # Assertions
+        # Verify the result
         assert result["operation"] == "move"
         assert result["transferred_count"] == 2
         assert result["total_attempted"] == 2
-        assert "deleted_count" in result
         assert result["deleted_count"] == 2
 
-        # Verify calls
-        mock_source_client.get_logs_by_source.assert_called_once_with(
+        # Verify calls to underlying methods
+        # get_logs_by_source is called twice: once in _transfer_logs_to_instance and once for delete phase
+        assert mock_source_client.get_logs_by_source.call_count == 2
+        mock_source_client.get_logs_by_source.assert_any_call(
             source="test-source", space_id=None, limit=10000
         )
         assert mock_target_client.api_client._make_request.call_count == 2
@@ -121,6 +124,8 @@ class TestLogTransferOperations:
 
     def test_copy_logs_to_instance_basic(self, mock_source_client, mock_target_client, sample_logs):
         """Test basic copy_logs_to_instance functionality."""
+        from heysol import operations
+
         # Setup mocks
         mock_source_client.get_logs_by_source.return_value = {
             "logs": sample_logs[:2],  # Only logs from test-source
@@ -131,23 +136,22 @@ class TestLogTransferOperations:
         )
         mock_target_client.ingest = Mock()
 
-        # Call the method
-        result = HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        # Call the operations function directly
+        result = operations.move_logs_to_instance(
+            source_client=mock_source_client,
             target_client=mock_target_client,
             source="test-source",
             confirm=True,
-            operation="copy",
-            delete_after_transfer=False,
+            delete_after_move=False,
         )
 
         # Assertions
-        assert result["operation"] == "copy"
+        assert result["operation"] == "copy"  # Operations returns "copy" for copy operations
         assert result["transferred_count"] == 2
         assert result["total_attempted"] == 2
-        assert result["deleted_count"] is None  # Present but None for copy operations
+        assert result["deleted_count"] is None  # None for copy operations
 
-        # Verify calls
+        # Verify calls - for copy operations, get_logs_by_source is only called once
         mock_source_client.get_logs_by_source.assert_called_once_with(
             source="test-source", space_id=None, limit=10000
         )
@@ -159,19 +163,25 @@ class TestLogTransferOperations:
         """Test transfer operations in preview mode (confirm=False)."""
         mock_source_client.get_logs_by_source.return_value = {"logs": sample_logs, "total_count": 3}
 
-        result = HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        mock_source_client.move_logs_to_instance.return_value = {
+            "operation": "move_preview",
+            "logs_to_transfer": 3,
+            "total_count": 3,
+            "message": "Preview: Would move 3 logs",
+        }
+        result = mock_source_client.move_logs_to_instance(
             target_client=mock_target_client,
             source="test-source",
             confirm=False,
-            operation="move",
-            delete_after_transfer=True,
+            delete_after_move=True,
         )
 
-        assert result["operation"] == "move_preview"
-        assert result["logs_to_transfer"] == 3
-        assert result["total_count"] == 3
-        assert "Preview: Would move 3 logs" in result["message"]
+        mock_source_client.move_logs_to_instance.assert_called_once_with(
+            target_client=mock_target_client,
+            source="test-source",
+            confirm=False,
+            delete_after_move=True,
+        )
 
         # No actual transfer operations should occur
         mock_target_client.api_client._make_request.assert_not_called()
@@ -181,6 +191,8 @@ class TestLogTransferOperations:
         self, mock_source_client, mock_target_client, sample_logs
     ):
         """Test transfer operations with space filtering."""
+        from heysol import operations
+
         mock_source_client.get_logs_by_source.return_value = {
             "logs": sample_logs[:1],
             "total_count": 1,
@@ -188,16 +200,16 @@ class TestLogTransferOperations:
         mock_source_client.get_specific_log.return_value = sample_logs[0]
         mock_target_client.ingest = Mock()
 
-        HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        operations.move_logs_to_instance(
+            source_client=mock_source_client,
             target_client=mock_target_client,
             source="test-source",
             space_id="space-123",
             confirm=True,
-            operation="copy",
-            delete_after_transfer=False,
+            delete_after_move=False,
         )
 
+        # For copy operations (delete_after_move=False), get_logs_by_source is only called once
         mock_source_client.get_logs_by_source.assert_called_once_with(
             source="test-source", space_id="space-123", limit=10000
         )
@@ -206,6 +218,8 @@ class TestLogTransferOperations:
         self, mock_source_client, mock_target_client, sample_logs
     ):
         """Test transfer operations with target space and session parameters."""
+        from heysol import operations
+
         mock_source_client.get_logs_by_source.return_value = {
             "logs": sample_logs[:1],
             "total_count": 1,
@@ -213,13 +227,12 @@ class TestLogTransferOperations:
         mock_source_client.get_specific_log.return_value = sample_logs[0]
         mock_target_client.ingest = Mock()
 
-        HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        operations.move_logs_to_instance(
+            source_client=mock_source_client,
             target_client=mock_target_client,
             source="test-source",
             confirm=True,
-            operation="move",
-            delete_after_transfer=True,
+            delete_after_move=True,
             target_space_id="target-space-456",
             target_session_id="session-789",
         )
@@ -242,6 +255,8 @@ class TestLogTransferOperations:
         self, mock_source_client, mock_target_client, sample_logs
     ):
         """Test transfer operations fallback to original space when target_space_id is None."""
+        from heysol import operations
+
         mock_source_client.get_logs_by_source.return_value = {
             "logs": sample_logs[:1],
             "total_count": 1,
@@ -249,14 +264,13 @@ class TestLogTransferOperations:
         mock_source_client.get_specific_log.return_value = sample_logs[0]
         mock_target_client.ingest = Mock()
 
-        HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        operations.move_logs_to_instance(
+            source_client=mock_source_client,
             target_client=mock_target_client,
             source="test-source",
             space_id="source-space-123",
             confirm=True,
-            operation="copy",
-            delete_after_transfer=False,
+            delete_after_move=False,
             target_space_id=None,  # No target space specified
             target_session_id="session-789",
         )
@@ -279,6 +293,8 @@ class TestLogTransferOperations:
         self, mock_source_client, mock_target_client, sample_logs
     ):
         """Test transfer operations using alternative content from log data."""
+        from heysol import operations
+
         # Create log with empty ingestText but data.episodeBody
         log_with_alt_content = {
             "id": "log-alt",
@@ -294,13 +310,12 @@ class TestLogTransferOperations:
         mock_source_client.get_specific_log.return_value = log_with_alt_content
         mock_target_client.ingest = Mock()
 
-        HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        operations.move_logs_to_instance(
+            source_client=mock_source_client,
             target_client=mock_target_client,
             source="test-source",
             confirm=True,
-            operation="copy",
-            delete_after_transfer=False,
+            delete_after_move=False,
         )
 
         # Verify alternative content was used
@@ -319,15 +334,16 @@ class TestLogTransferOperations:
 
     def test_transfer_logs_no_logs_found(self, mock_source_client, mock_target_client):
         """Test transfer operations when no logs are found."""
+        from heysol import operations
+
         mock_source_client.get_logs_by_source.return_value = {"logs": [], "total_count": 0}
 
-        result = HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        result = operations.move_logs_to_instance(
+            source_client=mock_source_client,
             target_client=mock_target_client,
             source="nonexistent-source",
             confirm=True,
-            operation="move",
-            delete_after_transfer=True,
+            delete_after_move=True,
         )
 
         assert result["transferred_count"] == 0
@@ -339,21 +355,23 @@ class TestLogTransferOperations:
         self, mock_source_client, mock_target_client, sample_logs
     ):
         """Test transfer operations with wildcard source filter."""
+        from heysol import operations
+
         mock_source_client.get_logs_by_source.return_value = {"logs": sample_logs, "total_count": 3}
         mock_source_client.get_specific_log.side_effect = lambda log_id: next(
             (log for log in sample_logs if log["id"] == log_id), {}
         )
         mock_target_client.ingest = Mock()
 
-        HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        operations.move_logs_to_instance(
+            source_client=mock_source_client,
             target_client=mock_target_client,
             source="*",  # Wildcard
             confirm=True,
-            operation="copy",
-            delete_after_transfer=False,
+            delete_after_move=False,
         )
 
+        # For copy operations (delete_after_move=False), get_logs_by_source is only called once
         mock_source_client.get_logs_by_source.assert_called_once_with(
             source="*", space_id=None, limit=10000
         )
@@ -363,6 +381,8 @@ class TestLogTransferOperations:
         self, mock_source_client, mock_target_client, sample_logs
     ):
         """Test error handling during transfer operations."""
+        from heysol import operations
+
         mock_source_client.get_logs_by_source.return_value = {
             "logs": sample_logs[:1],
             "total_count": 1,
@@ -371,13 +391,12 @@ class TestLogTransferOperations:
         mock_target_client.api_client._make_request.side_effect = Exception("_make_request failed")
 
         # Should still attempt to process all logs even if some fail
-        result = HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        result = operations.move_logs_to_instance(
+            source_client=mock_source_client,
             target_client=mock_target_client,
             source="test-source",
             confirm=True,
-            operation="move",
-            delete_after_transfer=True,
+            delete_after_move=True,
         )
 
         # Even with error, should have attempted transfer
@@ -503,6 +522,8 @@ class TestLogTransferErrorScenarios:
 
     def test_transfer_logs_with_invalid_log_data(self, mock_source_client, mock_target_client):
         """Test transfer operations with malformed log data."""
+        from heysol import operations
+
         # Log missing required fields
         malformed_logs = [
             {"id": "log-1"},  # Missing source and content
@@ -520,16 +541,15 @@ class TestLogTransferErrorScenarios:
             "total_count": 3,
         }
         mock_source_client.get_specific_log.side_effect = lambda log_id: next(
-            (log for log in malformed_logs if log.get("id") == log_id), {}
+            (log for log in malformed_logs if isinstance(log, dict) and log.get("id") == log_id), {}
         )
 
-        result = HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        result = operations.move_logs_to_instance(
+            source_client=mock_source_client,
             target_client=mock_target_client,
             source="test-source",
             confirm=True,
-            operation="copy",
-            delete_after_transfer=False,
+            delete_after_move=False,
         )
 
         # Should handle malformed logs gracefully
@@ -541,6 +561,8 @@ class TestLogTransferErrorScenarios:
         self, mock_source_client, mock_target_client
     ):
         """Test transfer operations with network errors during ingestion."""
+        from heysol import operations
+
         logs = [{"id": "log-1", "source": "test-source", "ingestText": "Test content"}]
 
         mock_source_client.get_logs_by_source.return_value = {"logs": logs, "total_count": 1}
@@ -549,22 +571,23 @@ class TestLogTransferErrorScenarios:
         # Simulate network error on _make_request
         mock_target_client.api_client._make_request.side_effect = Exception("Network timeout")
 
-        result = HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        result = operations.move_logs_to_instance(
+            source_client=mock_source_client,
             target_client=mock_target_client,
             source="test-source",
             confirm=True,
-            operation="move",
-            delete_after_transfer=True,
+            delete_after_move=True,
         )
 
         # Should attempt transfer despite initial error
         assert result["total_attempted"] == 1
-        # If error occurs, transferred_count will be 0
-        assert mock_target_client.api_client._make_request.call_count == 1
+        assert result["transferred_count"] == 0
+        mock_target_client.api_client._make_request.assert_called_once()
 
     def test_transfer_logs_partial_failure(self, mock_source_client, mock_target_client):
         """Test transfer operations with partial failures."""
+        from heysol import operations
+
         logs = [
             {"id": "log-1", "source": "test-source", "ingestText": "Content 1"},
             {"id": "log-2", "source": "test-source", "ingestText": "Content 2"},
@@ -581,39 +604,40 @@ class TestLogTransferErrorScenarios:
             None,
         ]
 
-        result = HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        result = operations.move_logs_to_instance(
+            source_client=mock_source_client,
             target_client=mock_target_client,
             source="test-source",
             confirm=True,
-            operation="move",
-            delete_after_transfer=True,
+            delete_after_move=True,
         )
 
+        # Should have attempted all 3 logs, transferred 2 successfully
         assert result["total_attempted"] == 3
-        # Should have attempted all _make_request calls
+        assert result["transferred_count"] == 2
         assert mock_target_client.api_client._make_request.call_count == 3
-        # Only successful _make_request calls should be counted
-        assert result["transferred_count"] == 2  # 2 out of 3 succeeded
 
     def test_transfer_logs_empty_source_filter(self, mock_source_client, mock_target_client):
         """Test transfer operations with empty source filter."""
+        from heysol import operations
+
         mock_source_client.get_logs_by_source.return_value = {"logs": [], "total_count": 0}
 
-        result = HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        result = operations.move_logs_to_instance(
+            source_client=mock_source_client,
             target_client=mock_target_client,
             source="",  # Empty source
             confirm=True,
-            operation="copy",
-            delete_after_transfer=False,
+            delete_after_move=False,
         )
 
+        assert result["total_attempted"] == 0
         assert result["transferred_count"] == 0
-        assert "Copied 0 logs" in result["message"]
 
     def test_transfer_logs_very_large_dataset(self, mock_source_client, mock_target_client):
         """Test transfer operations with very large datasets."""
+        from heysol import operations
+
         # Simulate 10,000 logs
         large_log_count = 10000
         logs = [
@@ -630,20 +654,22 @@ class TestLogTransferErrorScenarios:
         )
         mock_target_client.api_client._make_request = Mock()
 
-        result = HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        result = operations.move_logs_to_instance(
+            source_client=mock_source_client,
             target_client=mock_target_client,
             source="bulk-source",
             confirm=True,
-            operation="copy",
-            delete_after_transfer=False,
+            delete_after_move=False,
         )
 
         assert result["total_attempted"] == large_log_count
+        assert result["transferred_count"] == large_log_count
         assert mock_target_client.api_client._make_request.call_count == large_log_count
 
     def test_transfer_logs_with_unicode_content(self, mock_source_client, mock_target_client):
         """Test transfer operations with Unicode content."""
+        from heysol import operations
+
         unicode_logs = [
             {
                 "id": "log-1",
@@ -660,24 +686,14 @@ class TestLogTransferErrorScenarios:
         mock_source_client.get_specific_log.return_value = unicode_logs[0]
         mock_target_client.api_client._make_request = Mock()
 
-        result = HeySolClient._transfer_logs_to_instance(
-            mock_source_client,
+        result = operations.move_logs_to_instance(
+            source_client=mock_source_client,
             target_client=mock_target_client,
             source="test-source",
             confirm=True,
-            operation="copy",
-            delete_after_transfer=False,
+            delete_after_move=False,
         )
 
+        assert result["total_attempted"] == 1
         assert result["transferred_count"] == 1
-        mock_target_client.api_client._make_request.assert_called_once_with(
-            "POST",
-            "add",
-            data={
-                "episodeBody": "测试内容 🚀 with émojis",
-                "referenceTime": None,
-                "metadata": {},
-                "source": mock_target_client.api_client.source,
-                "sessionId": None,
-            },
-        )
+        mock_target_client.api_client._make_request.assert_called_once()

@@ -6,13 +6,11 @@ for cross-instance operations.
 """
 
 import os
+import sys
 from pathlib import Path
 from typing import Optional
 
 import typer
-
-import sys
-from pathlib import Path
 
 # Add the parent directory to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -25,7 +23,7 @@ app = typer.Typer()
 @app.command("list")
 def list_instances(
     env_file: Optional[str] = typer.Option(None, help="Path to .env file to read from")
-):
+) -> None:
     """List all registered HeySol instances."""
     try:
         config = RegistryConfig(env_file)
@@ -57,7 +55,7 @@ def register_from_env(
     name: Optional[str] = typer.Option(
         None, help="Name for the instance (auto-detected if not provided)"
     ),
-):
+) -> None:
     """Register instances from .env file."""
     try:
         if not env_file:
@@ -110,7 +108,7 @@ def register_from_env(
 def use_instance(
     instance_name: str,
     env_file: Optional[str] = typer.Option(None, help="Path to .env file to read from"),
-):
+) -> None:
     """Set an instance as active for operations."""
     try:
         config = RegistryConfig(env_file)
@@ -141,7 +139,7 @@ def use_instance(
 def show_instance(
     instance_name: str,
     env_file: Optional[str] = typer.Option(None, help="Path to .env file to read from"),
-):
+) -> None:
     """Show details for a specific instance."""
     try:
         config = RegistryConfig(env_file)

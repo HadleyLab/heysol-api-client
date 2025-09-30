@@ -22,7 +22,7 @@ def oauth2_authorize(
     base_url: Optional[str] = typer.Option(None, help="Base URL for API (overrides default)"),
     pretty: bool = typer.Option(True, help="Pretty print JSON output"),
     skip_mcp: bool = typer.Option(False, help="Skip MCP initialization"),
-):
+) -> None:
     """OAuth2 authorization endpoint."""
     try:
         # Use global credentials
@@ -64,7 +64,7 @@ def oauth2_token(
     base_url: Optional[str] = typer.Option(None, help="Base URL for API (overrides default)"),
     pretty: bool = typer.Option(True, help="Pretty print JSON output"),
     skip_mcp: bool = typer.Option(False, help="Skip MCP initialization"),
-):
+) -> None:
     """OAuth2 token endpoint."""
     try:
         # Use global credentials
@@ -117,7 +117,7 @@ def oauth2_userinfo(
     base_url: Optional[str] = typer.Option(None, help="Base URL for API (overrides default)"),
     pretty: bool = typer.Option(True, help="Pretty print JSON output"),
     skip_mcp: bool = typer.Option(False, help="Skip MCP initialization"),
-):
+) -> None:
     """OAuth2 user info endpoint."""
     try:
         # Use global credentials
@@ -160,7 +160,7 @@ def oauth2_introspect(
     base_url: Optional[str] = typer.Option(None, help="Base URL for API (overrides default)"),
     pretty: bool = typer.Option(True, help="Pretty print JSON output"),
     skip_mcp: bool = typer.Option(False, help="Skip MCP initialization"),
-):
+) -> None:
     """OAuth2 token introspection endpoint."""
     try:
         # Use global credentials

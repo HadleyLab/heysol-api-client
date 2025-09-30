@@ -217,7 +217,10 @@ def profile_health(
             # Try to create a test space
             test_space_name = f"Health Check Test - {int(time.time())}"
             try:
-                space_id = client.create_space(test_space_name, "Health check test space")
+                space_creation_result = client.create_space(
+                    test_space_name, "Health check test space"
+                )
+                space_id = space_creation_result.get("space_id")
                 results["checks"]["space_create"] = {
                     "status": "healthy",
                     "message": "Space creation working",
@@ -234,7 +237,8 @@ def profile_health(
 
                         # Clean up - delete the test space
                         try:
-                            client.delete_space(space_id=space_id, confirm=True)
+                            if space_id:
+                                client.delete_space(space_id=space_id, confirm=True)
                             results["checks"]["space_delete"] = {
                                 "status": "healthy",
                                 "message": "Space deletion working",

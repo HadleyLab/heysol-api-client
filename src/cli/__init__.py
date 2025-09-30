@@ -123,7 +123,7 @@ def cli_callback(
         else:
             try:
                 from heysol.registry_config import RegistryConfig
-    
+
                 registry = RegistryConfig()
                 instances = registry.get_instance_names()
 
@@ -157,40 +157,24 @@ def cli_callback(
 
 
 # Add command groups with detailed descriptions
-app.add_typer(
-    logs_app,
-    name="logs",
-    help="Manage ingestion logs, status, and log operations"
-)
+app.add_typer(logs_app, name="logs", help="Manage ingestion logs, status, and log operations")
 app.add_typer(
     memory_app,
     name="memory",
-    help="Memory operations: ingest, search, queue, and episode management"
+    help="Memory operations: ingest, search, queue, and episode management",
 )
+app.add_typer(profile_app, name="profile", help="User profile and API health check operations")
 app.add_typer(
-    profile_app,
-    name="profile",
-    help="User profile and API health check operations"
-)
-app.add_typer(
-    registry_app,
-    name="registry",
-    help="Manage registered HeySol instances and authentication"
+    registry_app, name="registry", help="Manage registered HeySol instances and authentication"
 )
 app.add_typer(
     spaces_app,
     name="spaces",
-    help="Space management: create, list, update, delete, and bulk operations"
+    help="Space management: create, list, update, delete, and bulk operations",
 )
+app.add_typer(tools_app, name="tools", help="List MCP tools and integrations")
 app.add_typer(
-    tools_app,
-    name="tools",
-    help="List MCP tools and integrations"
-)
-app.add_typer(
-    webhooks_app,
-    name="webhooks",
-    help="Webhook management: create, list, update, delete webhooks"
+    webhooks_app, name="webhooks", help="Webhook management: create, list, update, delete webhooks"
 )
 
 

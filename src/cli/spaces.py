@@ -13,7 +13,7 @@ app = typer.Typer()
 
 
 @app.command("list")
-def spaces_list():
+def spaces_list() -> None:
     """List available spaces."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -33,15 +33,14 @@ def spaces_list():
 @app.command("create")
 def spaces_create(
     name: str, description: Optional[str] = typer.Option(None, help="Space description")
-):
+) -> None:
     """Create a new space."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
 
     try:
         client = create_client(api_key=api_key, base_url=base_url)
-        space_id = client.create_space(name, description or "")
-        result = {"space_id": space_id, "name": name, "description": description}
+        result = client.create_space(name, description or "")
         typer.echo(format_json_output(result, pretty))
     except HeySolError as e:
         typer.echo(f"Error: {e}", err=True)
@@ -56,7 +55,7 @@ def spaces_get(
     space_id: str,
     include_stats: bool = typer.Option(True, help="Include statistics"),
     include_metadata: bool = typer.Option(True, help="Include metadata"),
-):
+) -> None:
     """Get space details."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -79,7 +78,7 @@ def spaces_update(
     name: Optional[str] = typer.Option(None, help="New space name"),
     description: Optional[str] = typer.Option(None, help="New space description"),
     metadata: Optional[str] = typer.Option(None, help="JSON metadata string"),
-):
+) -> None:
     """Update space properties."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -116,7 +115,7 @@ def spaces_bulk_ops(
         None, help="Statement IDs (can specify multiple)"
     ),
     space_ids: Optional[List[str]] = typer.Option(None, help="Space IDs (can specify multiple)"),
-):
+) -> None:
     """Perform bulk operations on spaces."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -141,7 +140,7 @@ def spaces_bulk_ops(
 @app.command("delete")
 def spaces_delete(
     space: str, confirm: bool = typer.Option(False, help="Confirm deletion (required)")
-):
+) -> None:
     """Delete a space by ID or name."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -159,7 +158,7 @@ def spaces_delete(
             spaces_list = client.get_spaces()
             for s in spaces_list:
                 if s.get("name") == space:
-                    space_id = s.get("id")
+                    space_id = s.get("id", "")
                     break
             else:
                 typer.echo(f"Space '{space}' not found", err=True)

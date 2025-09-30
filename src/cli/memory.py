@@ -6,7 +6,6 @@ from typing import List, Optional
 
 import typer
 
-from heysol import HeySolClient
 
 from .common import create_client, format_json_output, get_auth_from_global
 
@@ -190,8 +189,12 @@ def memory_move(
         typer.echo(f"Target user '{target_user}' not found in registry.", err=True)
         raise typer.Exit(1)
     # At this point target_instance is guaranteed to be not None
-    target_api_key = target_instance["api_key"]
-    target_base_url = target_instance["base_url"]
+    target_api_key = target_instance.get("api_key")
+    target_base_url = target_instance.get("base_url")
+
+    if not target_api_key or not target_base_url:
+        typer.echo(f"Target user '{target_user}' has incomplete configuration.", err=True)
+        raise typer.Exit(1)
 
     source_client = create_client(api_key=source_api_key, base_url=source_base_url)
     target_client = create_client(api_key=target_api_key, base_url=target_base_url)
@@ -252,16 +255,13 @@ def memory_copy(
     source_client = create_client(api_key=source_api_key, base_url=source_base_url)
     target_client = create_client(api_key=target_api_key, base_url=target_base_url)
 
-    result = HeySolClient._transfer_logs_to_instance(
-        source_client=source_client,
+    result = source_client.move_logs_to_instance(
         target_client=target_client,
-        source=source_filter or "*",
+        source=source_filter,
         space_id=space_id,
         limit=limit,
         confirm=confirm,
-        operation="copy",
-        delete_after_transfer=False,
-        target_source=None,
+        delete_after_move=False,  # This makes it a copy operation
         target_space_id=target_space_id,
         target_session_id=target_session_id,
     )

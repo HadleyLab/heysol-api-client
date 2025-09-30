@@ -37,17 +37,16 @@ def logs_list(
             )
             raise typer.Exit(1)
 
-    logs_list = client.get_ingestion_logs(
+    logs_result = client.get_ingestion_logs(
         space_id=space_id,
         limit=limit,
         offset=offset,
-        status=None,
+        status=status,
         start_date=start_date,
         end_date=end_date,
     )
 
-    if status:
-        logs_list = [log for log in logs_list if log.get("status") == status]
+    logs_list = logs_result.get("logs", [])
 
     if source:
         logs_list = [log for log in logs_list if log.get("source") == source]
@@ -102,8 +101,8 @@ def logs_delete_by_source(
             raise typer.Exit(1)
 
     typer.echo(f"Fetching logs to find source '{source}'...")
-    logs_list = client.get_ingestion_logs(space_id=space_id, limit=limit, offset=0)
-
+    logs_result = client.get_ingestion_logs(space_id=space_id, limit=limit, offset=0)
+    logs_list = logs_result.get("logs", [])
     source_logs = [log for log in logs_list if log.get("source") == source]
 
     if not source_logs:
@@ -124,26 +123,26 @@ def logs_delete_by_source(
         try:
             # Show informative details before deletion
             message_preview = (
-                log.get("message", "")[:100] + "..."
-                if len(log.get("message", "")) > 100
-                else log.get("message", "")
+                (log.get("message", "") or "")[:100] + "..."
+                if len(log.get("message", "") or "") > 100
+                else (log.get("message", "") or "")
             )
             metadata = log.get("metadata", {})
             created_at = log.get("created_at", "unknown")
-            typer.echo(f"Deleting log {log['id']}:")
+            typer.echo(f"Deleting log {log.get('id')}:")
             typer.echo(f"  Message: {message_preview}")
             typer.echo(f"  Created: {created_at}")
             if metadata:
                 typer.echo(f"  Metadata: {metadata}")
             typer.echo("")
 
-            client.delete_log_entry(log_id=log["id"])
+            client.delete_log_entry(log_id=log.get("id"))
             deleted_count += 1
-            typer.echo(f"✓ Successfully deleted log {log['id']}")
+            typer.echo(f"✓ Successfully deleted log {log.get('id')}")
             typer.echo("-" * 50)
         except Exception as e:
             failed_count += 1
-            typer.echo(f"✗ Failed to delete log {log['id']}: {str(e)}")
+            typer.echo(f"✗ Failed to delete log {log.get('id')}: {str(e)}")
             typer.echo("-" * 50)
 
     result = {
@@ -319,21 +318,20 @@ def logs_sources(
             )
             raise typer.Exit(1)
 
-    logs_list = client.get_ingestion_logs(
+    logs_result = client.get_ingestion_logs(
         space_id=space_id,
         limit=limit,
         offset=offset,
-        status=None,
+        status=status,
         start_date=start_date,
         end_date=end_date,
     )
 
-    if status:
-        logs_list = [log for log in logs_list if log.get("status") == status]
+    logs_list = logs_result.get("logs", [])
 
     sources = set()
     for log in logs_list:
-        if "source" in log:
+        if "source" in log and log["source"] is not None:
             sources.add(log["source"])
 
     unique_sources = sorted(list(sources))

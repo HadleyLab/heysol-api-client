@@ -9,22 +9,18 @@ import json
 from typing import Any, Dict, Iterator, List, Optional, cast
 
 import requests
+from pydantic import HttpUrl
 
 from ..config import HeySolConfig
 from ..exceptions import HeySolError, ValidationError, validate_api_key_format
 from ..models import (
     CreateSpaceRequest,
     IngestRequest,
-    IngestionStatus,
-    LogEntry,
     RegisterWebhookRequest,
     SearchRequest,
     SearchResult,
-    SpaceInfo,
     UpdateSpaceRequest,
     UpdateWebhookRequest,
-    UserProfile,
-    WebhookInfo,
 )
 
 
@@ -216,7 +212,7 @@ class HeySolAPIClient:
         )
 
         # Convert to API payload format
-        payload = request.dict(by_alias=True)
+        payload = request.model_dump(by_alias=True)
         return self._make_request("POST", "add", data=payload)
 
     def copy_log_entry(
@@ -313,7 +309,7 @@ class HeySolAPIClient:
         request = CreateSpaceRequest(name=name, description=description)
 
         # Convert to API payload format
-        payload = request.dict()
+        payload = request.model_dump()
         data = self._make_request("POST", "spaces", data=payload)
 
         # Handle different response formats
@@ -592,11 +588,13 @@ class HeySolAPIClient:
         elif search_status == "data_available":
             recommendations.append("Data appears to be processed - use search() to verify")
         else:
-            recommendations.extend([
-                "Wait a few minutes for data processing to complete",
-                "Use search() with your ingested content to check if it's available",
-                "Check the HeySol dashboard for processing status",
-            ])
+            recommendations.extend(
+                [
+                    "Wait a few minutes for data processing to complete",
+                    "Use search() with your ingested content to check if it's available",
+                    "Check the HeySol dashboard for processing status",
+                ]
+            )
 
         return {
             "ingestion_status": ingestion_status,
@@ -657,7 +655,7 @@ class HeySolAPIClient:
         request = UpdateSpaceRequest(name=name, description=description, metadata=metadata)
 
         # Convert to API payload format (exclude None values and metadata for now)
-        payload = request.dict(exclude_unset=True, exclude_none=True, exclude={"metadata"})
+        payload = request.model_dump(exclude_unset=True, exclude_none=True, exclude={"metadata"})
 
         if not payload:
             raise ValidationError("At least one field must be provided for update")
@@ -680,10 +678,10 @@ class HeySolAPIClient:
     ) -> Dict[str, Any]:
         """Register a new webhook."""
         # Create and validate request model
-        request = RegisterWebhookRequest(url=url, secret=secret)
+        request = RegisterWebhookRequest(url=HttpUrl(url), secret=secret)
 
         # Use form data format as specified in API docs (only url and secret)
-        data = {"url": request.url, "secret": request.secret}
+        data = {"url": str(request.url), "secret": request.secret}
 
         # Create a custom request for form data
         request_url = self.base_url.rstrip("/") + "/" + "webhooks".lstrip("/")
@@ -748,11 +746,11 @@ class HeySolAPIClient:
             raise ValidationError("Webhook ID is required")
 
         # Create and validate request model
-        request = UpdateWebhookRequest(url=url, events=events, secret=secret, active=active)
+        request = UpdateWebhookRequest(url=HttpUrl(url), events=events, secret=secret, active=active)
 
         # Use form data format as specified in API
         data = {
-            "url": request.url,
+            "url": str(request.url),
             "events": ",".join(request.events),
             "secret": request.secret,
             "active": str(request.active).lower(),

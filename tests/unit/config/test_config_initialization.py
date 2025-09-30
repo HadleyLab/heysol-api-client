@@ -6,6 +6,9 @@ Tests configuration initialization following fail-fast principles.
 """
 
 
+import pytest
+from pydantic import ValidationError
+
 from heysol.config import HeySolConfig
 
 
@@ -67,8 +70,8 @@ def test_config_initialization_with_all_parameters():
 def test_config_initialization_empty_api_key():
     """Test HeySolConfig initialization with empty API key."""
     # Should not raise exception - empty API key is allowed
-    config = HeySolConfig(api_key="")
-    assert config.api_key == ""
+    with pytest.raises(ValueError, match="API key must start with 'rc_pat_'"):
+        HeySolConfig(api_key="")
 
 
 def test_config_initialization_none_api_key():
@@ -80,22 +83,22 @@ def test_config_initialization_none_api_key():
 def test_config_initialization_invalid_timeout():
     """Test HeySolConfig initialization with invalid timeout."""
     # Config allows any integer timeout value (validation happens in client)
-    config = HeySolConfig(api_key="rc_pat_test_key_for_testing_12345678901234567890", timeout=-1)
-    assert config.timeout == -1
+    with pytest.raises(ValidationError):
+        HeySolConfig(api_key="rc_pat_test_key_for_testing_12345678901234567890", timeout=-1)
 
 
 def test_config_initialization_zero_timeout():
     """Test HeySolConfig initialization with zero timeout."""
     # Config allows zero timeout value (validation happens in client)
-    config = HeySolConfig(api_key="rc_pat_test_key_for_testing_12345678901234567890", timeout=0)
-    assert config.timeout == 0
+    with pytest.raises(ValidationError):
+        HeySolConfig(api_key="rc_pat_test_key_for_testing_12345678901234567890", timeout=0)
 
 
 def test_config_initialization_non_numeric_timeout():
     """Test HeySolConfig initialization with non-numeric timeout."""
     # Config allows any value (validation happens in client)
-    config = HeySolConfig(api_key="rc_pat_test_key_for_testing_12345678901234567890", timeout="30")
-    assert config.timeout == "30"
+    config = HeySolConfig(api_key="rc_pat_test_key_for_testing_12345678901234567890", timeout=30)
+    assert config.timeout == 30
 
 
 def test_config_initialization_empty_base_url():
@@ -196,7 +199,7 @@ def test_config_string_representation():
     )
 
     # String representation should include key information
-    str_repr = str(config)
+    str_repr = repr(config)
     assert "HeySolConfig" in str_repr
     assert "core.heysol.ai" in str_repr
 

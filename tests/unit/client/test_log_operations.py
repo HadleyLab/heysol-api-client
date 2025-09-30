@@ -82,9 +82,9 @@ class TestLogSourceFiltering:
             client = HeySolClient()
             result = client.get_logs_by_source("kilo-code")
 
-            assert len(result) == 2
-            assert result[0]["source"] == "kilo-code"
-            assert result[1]["source"] == "kilo-code"
+            assert len(result["logs"]) == 2
+            assert result["logs"][0]["source"] == "kilo-code"
+            assert result["logs"][1]["source"] == "kilo-code"
 
     def test_get_logs_by_source_with_limit(self):
         """Test source filtering with limit."""
@@ -99,9 +99,9 @@ class TestLogSourceFiltering:
             client = HeySolClient()
             result = client.get_logs_by_source("test", limit=2)
 
-            assert len(result) == 2
-            assert result[0]["id"] == "1"
-            assert result[1]["id"] == "2"
+            assert len(result["logs"]) == 2
+            assert result["logs"][0]["id"] == "1"
+            assert result["logs"][1]["id"] == "2"
 
     def test_get_logs_by_source_with_offset(self):
         """Test source filtering with offset."""
@@ -115,8 +115,8 @@ class TestLogSourceFiltering:
             client = HeySolClient()
             result = client.get_logs_by_source("test", offset=1, limit=1)
 
-            assert len(result) == 1
-            assert result[0]["id"] == "2"
+            assert len(result["logs"]) == 1
+            assert result["logs"][0]["id"] == "2"
 
     def test_get_logs_by_source_invalid_source(self):
         """Test source filtering with empty source fails fast."""
@@ -217,10 +217,10 @@ class TestIntegrationWithLiveAPI:
         try:
             # Test with existing source
             result = client.get_logs_by_source("kilo-code", limit=5)
-            assert isinstance(result, list)
+            assert isinstance(result, dict)
 
             # All returned logs should have the correct source
-            for log in result:
+            for log in result["logs"]:
                 assert log.get("source") == "kilo-code"
 
         finally:
@@ -255,7 +255,7 @@ class TestIntegrationWithLiveAPI:
             # Get an existing log to copy
             logs = client.get_logs_by_source("kilo-code", limit=1)
             if logs:
-                original_log = logs[0]
+                original_log = logs["logs"][0]
 
                 # Copy the log
                 result = client.copy_log_entry(original_log, new_source="test-copy-integration")

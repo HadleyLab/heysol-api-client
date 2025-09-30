@@ -78,7 +78,7 @@ def test_memory_operations_workflow():
 
         # Search for the ingested data
         search_result = client.search(test_message, limit=5)
-        episodes = search_result.get("episodes") or search_result.get("results", [])
+        episodes = search_result.episodes
 
         # Should find at least our test message
         found_test_message = False
@@ -113,13 +113,11 @@ def test_search_endpoint():
         # Use a simple test query
         search_result = client.search("health check test", limit=1)
 
-        # Validate response structure
-        assert isinstance(search_result, dict)
-        assert "episodes" in search_result or "results" in search_result
-
-        # Validate episodes/results is a list
-        episodes = search_result.get("episodes") or search_result.get("results", [])
-        assert isinstance(episodes, list)
+        # Validate response structure - search returns SearchResult object
+        from heysol.models.responses import SearchResult
+        assert isinstance(search_result, SearchResult)
+        assert hasattr(search_result, 'episodes')
+        assert isinstance(search_result.episodes, list)
 
         client.close()
 
@@ -133,16 +131,18 @@ def test_search_with_filters():
     client = get_test_client()
 
     try:
+        from heysol.models.responses import SearchResult
+
         # Test search with limit
         search_result = client.search("test", limit=1)
-        assert isinstance(search_result, dict)
+        assert isinstance(search_result, SearchResult)
 
         # Test search with space_ids if spaces exist
         spaces = client.get_spaces()
         if spaces:
             space_id = spaces[0]["id"]
             search_result = client.search("test", space_ids=[space_id], limit=1)
-            assert isinstance(search_result, dict)
+            assert isinstance(search_result, SearchResult)
 
         client.close()
 
@@ -177,11 +177,13 @@ def test_logs_list_endpoint():
         logs = client.get_ingestion_logs(limit=5)
 
         # Validate response structure
-        assert isinstance(logs, list)
+        assert isinstance(logs, dict)
+        assert "logs" in logs
 
         # If logs exist, validate structure
-        if logs:
-            log_entry = logs[0]
+        logs_list = logs.get("logs", [])
+        if logs_list:
+            log_entry = logs_list[0]
             assert isinstance(log_entry, dict)
             # Log entries should have basic fields like id or timestamp
             assert "id" in log_entry or "timestamp" in log_entry
@@ -200,18 +202,21 @@ def test_logs_filtering():
     try:
         # Test basic logs listing
         logs = client.get_ingestion_logs(limit=5)
-        assert isinstance(logs, list)
+        assert isinstance(logs, dict)
+        assert "logs" in logs
 
         # Test with status filter
         logs_success = client.get_ingestion_logs(status="success", limit=5)
-        assert isinstance(logs_success, list)
+        assert isinstance(logs_success, dict)
+        assert "logs" in logs_success
 
         # Test with space filter if spaces exist
         spaces = client.get_spaces()
         if spaces:
             space_id = spaces[0]["id"]
             logs_space = client.get_ingestion_logs(space_id=space_id, limit=5)
-            assert isinstance(logs_space, list)
+            assert isinstance(logs_space, dict)
+            assert "logs" in logs_space
 
         client.close()
 
@@ -228,7 +233,8 @@ def test_error_handling_comprehensive():
         # Test invalid search (should not crash)
         try:
             result = client.search("", limit=1)  # Empty query
-            assert isinstance(result, dict)
+            from heysol.models.responses import SearchResult
+            assert isinstance(result, SearchResult)
         except Exception:
             # May fail but should not crash
             pass
@@ -249,9 +255,11 @@ def test_pagination_and_limits():
         logs_1 = client.get_ingestion_logs(limit=1)
         logs_5 = client.get_ingestion_logs(limit=5)
 
-        assert isinstance(logs_1, list)
-        assert isinstance(logs_5, list)
-        assert len(logs_1) <= len(logs_5)
+        assert isinstance(logs_1, dict)
+        assert "logs" in logs_1
+        assert isinstance(logs_5, dict)
+        assert "logs" in logs_5
+        assert len(logs_1["logs"]) <= len(logs_5["logs"])
 
         client.close()
 
@@ -267,14 +275,14 @@ def test_data_integrity():
     try:
         # Get initial logs count
         initial_logs = client.get_ingestion_logs(limit=1)
-        initial_count = len(initial_logs) if initial_logs else 0
+        initial_count = len(initial_logs.get("logs", [])) if initial_logs else 0
 
         # Perform some operations that shouldn't change logs count
         client.search("integrity test", limit=1)
 
         # Verify logs count hasn't changed significantly
         final_logs = client.get_ingestion_logs(limit=1)
-        final_count = len(final_logs) if final_logs else 0
+        final_count = len(final_logs.get("logs", [])) if final_logs else 0
 
         # Allow for some variance due to concurrent operations
         count_diff = abs(initial_count - final_count)
@@ -296,7 +304,9 @@ def test_api_response_consistency():
         search1 = client.search("consistency test", limit=1)
         search2 = client.search("consistency test", limit=1)
 
-        assert isinstance(search1, type(search2))
+        from heysol.models.responses import SearchResult
+        assert isinstance(search1, SearchResult)
+        assert isinstance(search2, SearchResult)
 
         client.close()
 

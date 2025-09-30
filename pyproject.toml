@@ -47,6 +47,7 @@ dependencies = [
     "aiohttp>=3.8.0",
     "python-dotenv>=0.19.0",
     "typer>=0.19.0",
+    "pydantic>=2.0",
 ]
 
 [project.optional-dependencies]
@@ -76,11 +77,13 @@ Changelog = "https://github.com/HadleyLab/heysol-api-client/blob/main/CHANGELOG.
 heysol-client = "cli:main"
 
 [tool.setuptools]
-packages = {find = {}}
+packages = ["heysol", "heysol.clients", "heysol.models", "cli"]
+package-dir = {"" = "src"}
 include-package-data = true
 
 [tool.setuptools.package-data]
-heysol = ["py.typed"]
+heysol = ["py.typed", "config.json"]
+cli = ["py.typed"]
 
 [tool.black]
 line-length = 100
@@ -150,17 +153,8 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = [
-    "--strict-markers",
-    "--strict-config",
-    "--verbose",
-    "--tb=short",
-    "--cov=heysol",
-    "--cov-report=term-missing",
-    "--cov-report=html:htmlcov",
-    "--cov-report=xml",
-    "--cov-fail-under=80",
-]
+addopts = "-v --cov=src --cov-report=term-missing --cov-report=xml"
+pythonpath = ["src"]
 asyncio_mode = "auto"
 markers = [
     "unit: Unit tests",

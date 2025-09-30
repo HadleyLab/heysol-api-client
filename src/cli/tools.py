@@ -10,7 +10,7 @@ app = typer.Typer()
 
 
 @app.command("list")
-def tools_list():
+def tools_list() -> None:
     """List MCP tools."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print

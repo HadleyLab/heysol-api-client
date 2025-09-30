@@ -18,7 +18,7 @@ def webhooks_create(
     events: Optional[List[str]] = typer.Option(
         None, help="Events to subscribe to (can specify multiple)"
     ),
-):
+) -> None:
     """Create a new webhook."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -30,7 +30,7 @@ def webhooks_create(
 
 
 @app.command("get")
-def webhooks_get(webhook_id: str):
+def webhooks_get(webhook_id: str) -> None:
     """Get webhook details."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -47,7 +47,7 @@ def webhooks_list(
     active: Optional[bool] = typer.Option(None, help="Filter by active status"),
     limit: int = typer.Option(100, help="Result limit"),
     offset: int = typer.Option(0, help="Result offset"),
-):
+) -> None:
     """List webhooks."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -65,7 +65,7 @@ def webhooks_update(
     events: List[str] = typer.Option(..., help="Events to subscribe to (can specify multiple)"),
     secret: str = typer.Option(..., help="Webhook secret"),
     active: bool = typer.Option(True, help="Webhook active status"),
-):
+) -> None:
     """Update webhook properties."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -81,7 +81,7 @@ def webhooks_update(
 @app.command("delete")
 def webhooks_delete(
     webhook_id: str, confirm: bool = typer.Option(False, help="Confirm deletion (required)")
-):
+) -> None:
     """Delete a webhook."""
     if not confirm:
         typer.echo("Webhook deletion requires --confirm flag for safety", err=True)

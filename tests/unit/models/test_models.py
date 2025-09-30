@@ -175,15 +175,15 @@ class TestRegisterWebhookRequest:
             url="https://example.com/webhook",
             secret="webhook-secret-123",
         )
-        assert request.url == "https://example.com/webhook"
+        assert str(request.url) == "https://example.com/webhook"
         assert request.secret == "webhook-secret-123"
 
     def test_register_webhook_validation(self):
         """Test register webhook request validation."""
-        with pytest.raises(ValidationError, match="url"):
-            RegisterWebhookRequest(url="", secret="secret")
+        with pytest.raises(ValidationError, match="Input should be a valid URL"):
+            RegisterWebhookRequest(url="invalid-url", secret="secret")
 
-        with pytest.raises(ValidationError, match="secret"):
+        with pytest.raises(ValidationError, match="String should have at least 1 character"):
             RegisterWebhookRequest(url="https://example.com", secret="")
 
 
@@ -198,7 +198,7 @@ class TestUpdateWebhookRequest:
             secret="secret-123",
             active=False,
         )
-        assert request.url == "https://example.com/webhook"
+        assert str(request.url) == "https://example.com/webhook"
         assert request.events == ["push", "pull_request"]
         assert request.secret == "secret-123"
         assert request.active is False
@@ -214,8 +214,8 @@ class TestUpdateWebhookRequest:
 
     def test_update_webhook_validation(self):
         """Test update webhook request validation."""
-        with pytest.raises(ValidationError, match="url"):
-            UpdateWebhookRequest(url="", events=["push"], secret="secret")
+        with pytest.raises(ValidationError, match="Input should be a valid URL"):
+            UpdateWebhookRequest(url="invalid-url", events=["push"], secret="secret")
 
-        with pytest.raises(ValidationError, match="secret"):
+        with pytest.raises(ValidationError, match="String should have at least 1 character"):
             UpdateWebhookRequest(url="https://example.com", events=["push"], secret="")

@@ -20,6 +20,7 @@ sys.path.insert(0, str(src_path))
 
 from heysol.clients.api_client import HeySolAPIClient
 from heysol.exceptions import ValidationError
+from pydantic import ValidationError as PydanticValidationError
 
 # Use a properly formatted test API key (50+ characters to pass validation)
 TEST_API_KEY = "rc_pat_test_key_1234567890abcdef1234567890abcdef1234567890ab"
@@ -53,6 +54,7 @@ class TestHeySolAPIClient:
                 mock_config_instance = Mock()
                 mock_config_instance.api_key = TEST_API_KEY
                 mock_config_instance.base_url = "https://test.com"
+                mock_config_instance.source = "test-source"
                 mock_config.from_env.return_value = mock_config_instance
 
                 client = HeySolAPIClient(api_key=TEST_API_KEY, base_url="https://test.com")
@@ -66,6 +68,7 @@ class TestHeySolAPIClient:
             mock_config_instance = Mock()
             mock_config_instance.api_key = TEST_API_KEY
             mock_config_instance.base_url = "https://test.com"
+            mock_config_instance.source = "test-source"
             mock_config.from_env.return_value = mock_config_instance
 
             client = HeySolAPIClient(api_key=TEST_API_KEY, base_url="https://test.com")
@@ -87,11 +90,12 @@ class TestHeySolAPIClient:
             mock_config_instance = Mock()
             mock_config_instance.api_key = TEST_API_KEY
             mock_config_instance.base_url = "https://test.com"
+            mock_config_instance.source = "test-source"
             mock_config.from_env.return_value = mock_config_instance
 
             client = HeySolAPIClient(api_key=TEST_API_KEY, base_url="https://test.com")
 
-            with pytest.raises(ValidationError, match="Message is required"):
+            with pytest.raises(PydanticValidationError, match="String should have at least 1 character"):
                 client.ingest("")
 
     def test_search_with_empty_query(self):
@@ -100,11 +104,12 @@ class TestHeySolAPIClient:
             mock_config_instance = Mock()
             mock_config_instance.api_key = TEST_API_KEY
             mock_config_instance.base_url = "https://test.com"
+            mock_config_instance.source = "test-source"
             mock_config.from_env.return_value = mock_config_instance
 
             client = HeySolAPIClient(api_key=TEST_API_KEY, base_url="https://test.com")
 
-            with pytest.raises(ValidationError, match="Search query is required"):
+            with pytest.raises(PydanticValidationError, match="String should have at least 1 character"):
                 client.search("")
 
     def test_create_space_with_empty_name(self):
@@ -113,11 +118,12 @@ class TestHeySolAPIClient:
             mock_config_instance = Mock()
             mock_config_instance.api_key = TEST_API_KEY
             mock_config_instance.base_url = "https://test.com"
+            mock_config_instance.source = "test-source"
             mock_config.from_env.return_value = mock_config_instance
 
             client = HeySolAPIClient(api_key=TEST_API_KEY, base_url="https://test.com")
 
-            with pytest.raises(ValidationError, match="Space name is required"):
+            with pytest.raises(PydanticValidationError, match="String should have at least 1 character"):
                 client.create_space("")
 
 

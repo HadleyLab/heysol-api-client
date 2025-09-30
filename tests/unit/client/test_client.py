@@ -67,16 +67,15 @@ class TestHeySolClient:
 
             # Test with MCP preferred and available
             mock_mcp_instance = Mock()
-            mock_mcp_instance.is_mcp_available.return_value = True
-            mock_mcp.return_value = mock_mcp_instance
-
-            client = HeySolClient(api_key=TEST_API_KEY, prefer_mcp=True, skip_mcp_init=False)
+            client = HeySolClient(api_key=TEST_API_KEY, prefer_mcp=True, skip_mcp_init=True)
+            client.mcp_available = True
+            client.mcp_client = mock_mcp.return_value
 
             method = client.get_preferred_access_method("ingest")
             assert method == "mcp"
 
             # Test with MCP not available
-            mock_mcp_instance.is_mcp_available.return_value = False
+            client.mcp_available = False
             method = client.get_preferred_access_method("ingest")
             assert method == "direct_api"
 
