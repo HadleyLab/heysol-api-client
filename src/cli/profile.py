@@ -13,7 +13,7 @@ app = typer.Typer()
 
 
 @app.command("get")
-def profile_get():
+def profile_get() -> None:
     """Get user profile."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -29,7 +29,7 @@ def profile_health(
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Show detailed health check results"
     )
-):
+) -> None:
     """Check API health by testing all endpoints."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print

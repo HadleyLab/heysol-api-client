@@ -5,6 +5,32 @@ All notable changes to the HeySol API Client will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2025-09-30
+
+### Added
+- **CLI Polish**: Complete CLI help system overhaul with professional formatting and comprehensive documentation
+- **CLI Testing**: Added 47 comprehensive CLI polish tests covering all help outputs and formatting
+- **Command Descriptions**: Enhanced all command groups with detailed, descriptive help text following Typer best practices
+- **Test Integration**: Integrated `test_all_help.py` into pytest infrastructure as `test_all_cli_help.py`
+- **Import Fixes**: Resolved all relative import issues across CLI modules for better maintainability
+
+### Changed
+- **CLI Help Output**: Streamlined main help output by removing verbose setup instructions and examples
+- **Command Structure**: Improved command descriptions for better user experience:
+  - `logs`: "Manage ingestion logs, status, and log operations"
+  - `memory`: "Memory operations: ingest, search, queue, and episode management"
+  - `spaces`: "Space management: create, list, update, delete, and bulk operations"
+  - `profile`: "User profile and API health check operations"
+  - `registry`: "Manage registered HeySol instances and authentication"
+  - `tools`: "List MCP tools and integrations"
+  - `webhooks`: "Webhook management: create, list, update, delete webhooks"
+- **Test Coverage**: Enhanced CLI testing with polish validation tests for accuracy, completeness, and accessibility
+
+### Fixed
+- **Import Issues**: Fixed relative import problems in CLI modules that were causing test failures
+- **Test Dependencies**: Updated test imports to use proper module paths (`src.cli` instead of `cli`)
+- **Help Consistency**: Ensured consistent help formatting and descriptions across all CLI modules
+
 ## [1.2.1] - 2025-09-28
 
 ### Added

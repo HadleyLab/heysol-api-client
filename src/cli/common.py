@@ -4,9 +4,11 @@ import sys
 from pathlib import Path
 from typing import Any, Optional
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add the parent directory to Python path for imports
+parent_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(parent_dir))
 
-from ..heysol import HeySolClient, HeySolConfig
+from heysol import HeySolClient, HeySolConfig
 
 
 def load_config(
@@ -31,20 +33,8 @@ def create_client(api_key: str, base_url: str = "https://core.heysol.ai/api/v1")
     return HeySolClient(api_key=api_key, base_url=base_url)
 
 
-def get_auth_from_context(ctx) -> "tuple[str, str]":
-    """Get resolved API key and base URL from Typer context.
-
-    Raises:
-        ValueError: If authentication is not provided.
-    """
-    # This function is deprecated, use get_auth_from_global() instead
-    api_key = ctx.obj.get("api_key")
-    base_url = ctx.obj.get("base_url")
-
-    if not api_key:
-        raise ValueError("API key is required. Use --api-key or --user option.")
-
-    return api_key, base_url
+# Removed deprecated get_auth_from_context() function
+# Use get_auth_from_global() instead for authentication
 
 
 def get_auth_from_global() -> "tuple[str, str]":

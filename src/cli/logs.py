@@ -20,7 +20,7 @@ def logs_list(
     status: Optional[str] = typer.Option(None, help="Filter by status"),
     start_date: Optional[str] = typer.Option(None, help="Start date filter"),
     end_date: Optional[str] = typer.Option(None, help="End date filter"),
-):
+) -> None:
     """Get ingestion logs."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -59,7 +59,7 @@ def logs_list(
 @app.command("delete")
 def logs_delete(
     log_id: str, confirm: bool = typer.Option(False, help="Confirm deletion (required)")
-):
+) -> None:
     """Delete a specific log entry by ID."""
     if not confirm:
         typer.echo("Deletion requires --confirm flag for safety", err=True)
@@ -80,7 +80,7 @@ def logs_delete_by_source(
     space_id: Optional[str] = typer.Option(None, help="Space ID to filter logs"),
     confirm: bool = typer.Option(False, help="Confirm deletion (required)"),
     limit: int = typer.Option(1000, help="Maximum logs to process"),
-):
+) -> None:
     """Delete logs by source (batch operation)."""
     if not confirm:
         typer.echo("Deletion requires --confirm flag for safety", err=True)
@@ -159,7 +159,7 @@ def logs_delete_by_source(
 
 
 @app.command("get")
-def logs_get(log_id: str):
+def logs_get(log_id: str) -> None:
     """Get a specific log by ID."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -179,7 +179,7 @@ def logs_get_by_source(
     status: Optional[str] = typer.Option(None, help="Filter by status"),
     start_date: Optional[str] = typer.Option(None, help="Start date filter"),
     end_date: Optional[str] = typer.Option(None, help="End date filter"),
-):
+) -> None:
     """Get logs filtered by source using efficient streaming."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -215,7 +215,7 @@ def logs_get_by_source(
 def logs_status(
     space_id: Optional[str] = typer.Option(None, help="Space ID to check status for"),
     run_id: Optional[str] = typer.Option(None, help="Run ID from ingestion response"),
-):
+) -> None:
     """Check ingestion processing status."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -252,7 +252,7 @@ def logs_copy(
     override_metadata: Optional[str] = typer.Option(
         None, help='JSON string of metadata fields to override (e.g., \'{"priority":"high"}\')'
     ),
-):
+) -> None:
     """Copy a log entry with all metadata preserved, allowing selective field overrides."""
     import json
 
@@ -302,7 +302,7 @@ def logs_sources(
     status: Optional[str] = typer.Option(None, help="Filter by status"),
     start_date: Optional[str] = typer.Option(None, help="Start date filter"),
     end_date: Optional[str] = typer.Option(None, help="End date filter"),
-):
+) -> None:
     """List unique sources from memory logs."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print

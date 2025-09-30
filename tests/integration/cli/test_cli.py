@@ -12,10 +12,14 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-# Add the parent directory to the Python path to import the CLI
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add the src directory to the Python path to import the CLI
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from cli import app
+try:
+    from cli import app
+except ImportError:
+    # Fallback for direct execution
+    from src.cli import app
 
 
 class TestCLI:

@@ -12,6 +12,20 @@ import requests
 
 from ..config import HeySolConfig
 from ..exceptions import HeySolError, ValidationError, validate_api_key_format
+from ..models import (
+    CreateSpaceRequest,
+    IngestRequest,
+    IngestionStatus,
+    LogEntry,
+    RegisterWebhookRequest,
+    SearchRequest,
+    SearchResult,
+    SpaceInfo,
+    UpdateSpaceRequest,
+    UpdateWebhookRequest,
+    UserProfile,
+    WebhookInfo,
+)
 
 
 class HeySolAPIClient:
@@ -193,20 +207,16 @@ class HeySolAPIClient:
         source: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Ingest data into CORE Memory using direct API."""
-        if not message:
-            raise ValidationError("Message is required for ingestion")
+        # Create and validate request model
+        request = IngestRequest(
+            episodeBody=message,
+            source=source or self.source or "heysol-api-client",
+            sessionId=session_id or "",
+            spaceId=space_id,
+        )
 
-        # Use direct API call with the correct format
-        payload: Dict[str, Any] = {
-            "episodeBody": message,
-            "referenceTime": "2023-11-07T05:31:56Z",  # Use current timestamp
-            "metadata": {},
-            "source": source or self.source or "heysol-api-client",
-            "sessionId": session_id or "",
-        }
-        if space_id:
-            payload["spaceId"] = space_id
-
+        # Convert to API payload format
+        payload = request.dict(by_alias=True)
         return self._make_request("POST", "add", data=payload)
 
     def copy_log_entry(
@@ -276,21 +286,21 @@ class HeySolAPIClient:
         space_ids: Optional[List[str]] = None,
         limit: int = 10,
         include_invalidated: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> SearchResult:
         """Search for memories in CORE Memory using direct API."""
-        if not query:
-            raise ValidationError("Search query is required")
+        # Create and validate request model
+        request = SearchRequest(
+            query=query,
+            space_ids=space_ids or [],
+            include_invalidated=include_invalidated,
+        )
 
-        # Use direct API call with correct format
-        payload = {
-            "query": query,
-            "spaceIds": space_ids or [],
-            "includeInvalidated": include_invalidated,
-        }
-
+        # Convert to API payload format
+        payload = request.model_dump(by_alias=True)
         params = {"limit": limit}
 
-        return self._make_request("POST", "search", data=payload, params=params)
+        response = self._make_request("POST", "search", data=payload, params=params)
+        return SearchResult(**response)
 
     def get_spaces(self) -> List[Any]:
         """Get available memory spaces using direct API."""
@@ -299,10 +309,11 @@ class HeySolAPIClient:
 
     def create_space(self, name: str, description: str = "") -> Optional[str]:
         """Create a new memory space."""
-        if not name:
-            raise ValidationError("Space name is required")
+        # Create and validate request model
+        request = CreateSpaceRequest(name=name, description=description)
 
-        payload = {"name": name, "description": description}
+        # Convert to API payload format
+        payload = request.dict()
         data = self._make_request("POST", "spaces", data=payload)
 
         # Handle different response formats
@@ -543,60 +554,57 @@ class HeySolAPIClient:
             space_id: Space ID to check for recent activity
 
         Returns:
-            Dict with status information and recommendations
+            IngestionStatus with status information and recommendations
         """
-        status_info: Dict[str, Any] = {
-            "ingestion_status": "unknown",
-            "recommendations": [],
-            "available_methods": [],
-        }
-
-        if space_id:
-            status_info["space_id"] = space_id
+        ingestion_status = "unknown"
+        recommendations = []
+        available_methods = []
+        recent_logs_count = None
+        search_status = None
 
         # Try to get logs if endpoint is available
         try:
             logs = self.get_ingestion_logs(space_id=space_id, limit=5)
             if logs and len(logs) > 0:
-                status_info["ingestion_status"] = "logs_available"
-                status_info["recent_logs_count"] = len(logs)
-                status_info["available_methods"].append("get_ingestion_logs")
+                ingestion_status = "logs_available"
+                recent_logs_count = len(logs)
+                available_methods.append("get_ingestion_logs")
             else:
-                status_info["ingestion_status"] = "no_logs_found"
-        except Exception as e:
-            status_info["logs_error"] = str(e)
+                ingestion_status = "no_logs_found"
+        except Exception:
+            pass  # IngestionStatus will handle missing fields
 
         # Try search to see if data is available
         try:
             search_result = self.search("test", space_ids=[space_id] if space_id else None, limit=1)
-            episodes = search_result.get("episodes", [])
+            episodes = search_result.episodes
             if episodes:
-                status_info["search_status"] = "data_available"
-                status_info["available_methods"].append("search")
+                search_status = "data_available"
+                available_methods.append("search")
             else:
-                status_info["search_status"] = "no_search_results"
-        except Exception as e:
-            status_info["search_error"] = str(e)
+                search_status = "no_search_results"
+        except Exception:
+            pass
 
         # Provide recommendations based on what works
-        if "logs_available" in status_info.get("ingestion_status", ""):
-            status_info["recommendations"].append(
-                "Use get_ingestion_logs() to check processing status"
-            )
-        elif "data_available" in status_info.get("search_status", ""):
-            status_info["recommendations"].append(
-                "Data appears to be processed - use search() to verify"
-            )
+        if ingestion_status == "logs_available":
+            recommendations.append("Use get_ingestion_logs() to check processing status")
+        elif search_status == "data_available":
+            recommendations.append("Data appears to be processed - use search() to verify")
         else:
-            status_info["recommendations"].extend(
-                [
-                    "Wait a few minutes for data processing to complete",
-                    "Use search() with your ingested content to check if it's available",
-                    "Check the HeySol dashboard for processing status",
-                ]
-            )
+            recommendations.extend([
+                "Wait a few minutes for data processing to complete",
+                "Use search() with your ingested content to check if it's available",
+                "Check the HeySol dashboard for processing status",
+            ])
 
-        return status_info
+        return {
+            "ingestion_status": ingestion_status,
+            "recommendations": recommendations,
+            "available_methods": available_methods,
+            "recent_logs_count": recent_logs_count,
+            "search_status": search_status,
+        }
 
     # Spaces endpoints
     def bulk_space_operations(
@@ -645,13 +653,11 @@ class HeySolAPIClient:
         if not space_id:
             raise ValidationError("Space ID is required")
 
-        payload = {}
-        if name is not None:
-            payload["name"] = name
-        if description is not None:
-            payload["description"] = description
-        # Note: API documentation shows only name and description are supported
-        # metadata parameter is kept for future compatibility but not sent
+        # Create and validate request model
+        request = UpdateSpaceRequest(name=name, description=description, metadata=metadata)
+
+        # Convert to API payload format (exclude None values and metadata for now)
+        payload = request.dict(exclude_unset=True, exclude_none=True, exclude={"metadata"})
 
         if not payload:
             raise ValidationError("At least one field must be provided for update")
@@ -673,14 +679,11 @@ class HeySolAPIClient:
         self, url: str, events: Optional[List[str]] = None, secret: str = ""
     ) -> Dict[str, Any]:
         """Register a new webhook."""
-        if not url:
-            raise ValidationError("Webhook URL is required")
-
-        if secret == "":
-            raise ValidationError("Webhook secret is required")
+        # Create and validate request model
+        request = RegisterWebhookRequest(url=url, secret=secret)
 
         # Use form data format as specified in API docs (only url and secret)
-        data = {"url": url, "secret": secret}
+        data = {"url": request.url, "secret": request.secret}
 
         # Create a custom request for form data
         request_url = self.base_url.rstrip("/") + "/" + "webhooks".lstrip("/")
@@ -744,21 +747,15 @@ class HeySolAPIClient:
         if not webhook_id:
             raise ValidationError("Webhook ID is required")
 
-        if not url:
-            raise ValidationError("Webhook URL is required")
-
-        if not events:
-            raise ValidationError("Webhook events are required")
-
-        if not secret:
-            raise ValidationError("Webhook secret is required")
+        # Create and validate request model
+        request = UpdateWebhookRequest(url=url, events=events, secret=secret, active=active)
 
         # Use form data format as specified in API
         data = {
-            "url": url,
-            "events": ",".join(events),
-            "secret": secret,
-            "active": str(active).lower(),
+            "url": request.url,
+            "events": ",".join(request.events),
+            "secret": request.secret,
+            "active": str(request.active).lower(),
         }
 
         # Create a custom request for form data

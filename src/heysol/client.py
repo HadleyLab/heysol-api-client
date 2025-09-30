@@ -4,6 +4,7 @@ from .clients.api_client import HeySolAPIClient
 from .clients.mcp_client import HeySolMCPClient
 from .config import HeySolConfig
 from .exceptions import HeySolError, ValidationError
+from .models import SearchResult
 
 
 class HeySolClient:
@@ -93,11 +94,12 @@ class HeySolClient:
         space_ids: Optional[List[str]] = None,
         limit: int = 10,
         include_invalidated: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> SearchResult:
         """Search with automatic MCP fallback."""
         if self.mcp_available and self.prefer_mcp and self.mcp_client is not None:
             try:
-                return self.mcp_client.search_via_mcp(query, space_ids, limit)
+                response = self.mcp_client.search_via_mcp(query, space_ids, limit)
+                return SearchResult(**response)
             except Exception:
                 # Fallback to API
                 pass

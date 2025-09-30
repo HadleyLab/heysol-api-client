@@ -6,7 +6,8 @@ from typing import List, Optional
 
 import typer
 
-from ..heysol import HeySolClient
+from heysol import HeySolClient
+
 from .common import create_client, format_json_output, get_auth_from_global
 
 app = typer.Typer(help="Memory operations")
@@ -18,7 +19,7 @@ def memory_ingest(
     file: Optional[str] = typer.Option(None, help="File containing message to ingest"),
     space_id: Optional[str] = typer.Option(None, help="Space ID"),
     session_id: Optional[str] = typer.Option(None, help="Session ID"),
-):
+) -> None:
     """Ingest data into memory."""
     if not message and not file:
         typer.echo("Message or file is required", err=True)
@@ -48,7 +49,7 @@ def memory_search(
     space_id: Optional[str] = typer.Option(None, help="Space ID"),
     limit: int = typer.Option(10, help="Result limit"),
     include_invalidated: bool = typer.Option(False, help="Include invalidated results"),
-):
+) -> None:
     """Search memory."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -71,7 +72,7 @@ def memory_search_graph(
     limit: int = typer.Option(10, help="Result limit"),
     depth: int = typer.Option(2, help="Graph search depth"),
     include_metadata: bool = typer.Option(True, help="Include metadata"),
-):
+) -> None:
     """Search knowledge graph."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -95,7 +96,7 @@ def memory_queue(
     priority: str = typer.Option("normal", help="Priority level"),
     tags: Optional[List[str]] = typer.Option(None, help="Tags (can specify multiple)"),
     metadata: Optional[str] = typer.Option(None, help="JSON metadata string"),
-):
+) -> None:
     """Add data to ingestion queue."""
     if not data and not file:
         typer.echo("Data or file is required", err=True)
@@ -133,7 +134,7 @@ def memory_episode(
     limit: int = typer.Option(100, help="Result limit"),
     offset: int = typer.Option(0, help="Result offset"),
     include_metadata: bool = typer.Option(True, help="Include metadata"),
-):
+) -> None:
     """Get episode facts."""
     api_key, base_url = get_auth_from_global()
     pretty = True  # Always pretty print
@@ -166,7 +167,7 @@ def memory_move(
     space_id: Optional[str] = typer.Option(None, help="Space ID to filter logs (optional)"),
     confirm: bool = typer.Option(False, help="Actually perform the move operation"),
     keep_source: bool = typer.Option(False, help="Keep logs in source after move"),
-):
+) -> None:
     """Move logs to target instance (copy + delete)."""
     if not confirm:
         typer.echo("Move operation requires --confirm flag for safety", err=True)
@@ -175,7 +176,7 @@ def memory_move(
     source_api_key, source_base_url = get_auth_from_global()
     pretty = True  # Always pretty print
 
-    from ..heysol.registry_config import RegistryConfig
+    from heysol.registry_config import RegistryConfig
 
     registry = RegistryConfig()
     if target_user not in registry.get_instance_names():
@@ -189,8 +190,8 @@ def memory_move(
         typer.echo(f"Target user '{target_user}' not found in registry.", err=True)
         raise typer.Exit(1)
     # At this point target_instance is guaranteed to be not None
-    target_api_key = target_instance["api_key"]  # type: ignore
-    target_base_url = target_instance["base_url"]  # type: ignore
+    target_api_key = target_instance["api_key"]
+    target_base_url = target_instance["base_url"]
 
     source_client = create_client(api_key=source_api_key, base_url=source_base_url)
     target_client = create_client(api_key=target_api_key, base_url=target_base_url)
@@ -222,7 +223,7 @@ def memory_copy(
     space_id: Optional[str] = typer.Option(None, help="Space ID to filter logs (optional)"),
     limit: int = typer.Option(10, help="Maximum number of logs to copy (default: 10)"),
     confirm: bool = typer.Option(False, help="Actually perform the copy operation"),
-):
+) -> None:
     """Copy logs to target instance."""
     if not confirm:
         typer.echo("Copy operation requires --confirm flag for safety", err=True)
@@ -231,7 +232,7 @@ def memory_copy(
     source_api_key, source_base_url = get_auth_from_global()
     pretty = True  # Always pretty print
 
-    from ..heysol.registry_config import RegistryConfig
+    from heysol.registry_config import RegistryConfig
 
     registry = RegistryConfig()
     if target_user not in registry.get_instance_names():
@@ -245,8 +246,8 @@ def memory_copy(
         typer.echo(f"Target user '{target_user}' not found in registry.", err=True)
         raise typer.Exit(1)
     # At this point target_instance is guaranteed to be not None
-    target_api_key = target_instance["api_key"]  # type: ignore
-    target_base_url = target_instance["base_url"]  # type: ignore
+    target_api_key = target_instance["api_key"]
+    target_base_url = target_instance["base_url"]
 
     source_client = create_client(api_key=source_api_key, base_url=source_base_url)
     target_client = create_client(api_key=target_api_key, base_url=target_base_url)
@@ -280,12 +281,12 @@ def memory_copy_by_id(
         None, help="Target source identifier (optional, defaults to original)"
     ),
     confirm: bool = typer.Option(False, help="Actually perform the copy operation"),
-):
+) -> None:
     """Copy a specific log by ID to target instance."""
     source_api_key, source_base_url = get_auth_from_global()
     pretty = True  # Always pretty print
 
-    from ..heysol.registry_config import RegistryConfig
+    from heysol.registry_config import RegistryConfig
 
     registry = RegistryConfig()
     if target_user not in registry.get_instance_names():
@@ -299,8 +300,8 @@ def memory_copy_by_id(
         typer.echo(f"Target user '{target_user}' not found in registry.", err=True)
         raise typer.Exit(1)
     # At this point target_instance is guaranteed to be not None
-    target_api_key = target_instance["api_key"]  # type: ignore
-    target_base_url = target_instance["base_url"]  # type: ignore
+    target_api_key = target_instance["api_key"]
+    target_base_url = target_instance["base_url"]
 
     source_client = create_client(api_key=source_api_key, base_url=source_base_url)
     target_client = create_client(api_key=target_api_key, base_url=target_base_url)
