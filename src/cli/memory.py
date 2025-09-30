@@ -6,7 +6,6 @@ from typing import List, Optional
 
 import typer
 
-
 from .common import create_client, format_json_output, get_auth_from_global
 
 app = typer.Typer(help="Memory operations")

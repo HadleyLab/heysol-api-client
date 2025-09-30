@@ -65,7 +65,7 @@ def cli_callback(
     # Case 1: Both user and API key provided - validate they match
     if user and api_key:
         try:
-            from heysol.registry_config import RegistryConfig
+            from ..heysol.registry_config import RegistryConfig
 
             registry = RegistryConfig()
             instance = registry.get_instance(user)
@@ -93,7 +93,7 @@ def cli_callback(
     # Case 2: User provided, no API key - resolve from registry
     elif user and not api_key:
         try:
-            from heysol.registry_config import RegistryConfig
+            from ..heysol.registry_config import RegistryConfig
 
             registry = RegistryConfig()
             instance = registry.get_instance(user)
@@ -122,8 +122,8 @@ def cli_callback(
             resolved_base_url = base_url or "https://core.heysol.ai/api/v1"
         else:
             try:
-                from heysol.registry_config import RegistryConfig
-
+                from ..heysol.registry_config import RegistryConfig
+    
                 registry = RegistryConfig()
                 instances = registry.get_instance_names()
 

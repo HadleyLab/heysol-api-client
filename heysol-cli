@@ -6,8 +6,8 @@ This script provides a simple entry point for the HeySol CLI that works correctl
 with the module structure.
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Add the src directory to Python path

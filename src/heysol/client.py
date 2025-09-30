@@ -113,10 +113,16 @@ class HeySolClient:
         if self.mcp_available and self.prefer_mcp and self.mcp_client is not None:
             try:
                 result = self.mcp_client.get_spaces_via_mcp()
+                # Handle different response formats from MCP
                 if isinstance(result, dict) and "spaces" in result:
-                    return cast(List[Dict[str, Any]], result["spaces"])
-                if isinstance(result, list):
-                    return cast(List[Dict[str, Any]], result)
+                    spaces_data = result["spaces"]
+                    if isinstance(spaces_data, list):
+                        # Convert to expected format
+                        return [space for space in spaces_data if isinstance(space, dict)]
+                # Handle direct list response
+                if isinstance(result, list):  # type: ignore[unreachable]
+                    # Convert to expected format
+                    return [space for space in result if isinstance(space, dict)]  # type: ignore[unreachable]
             except Exception:
                 # Fallback to API
                 pass

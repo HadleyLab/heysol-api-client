@@ -33,7 +33,7 @@ class SearchResult(BaseModel):
     episodes: List[Dict[str, Any]] = Field(default_factory=list, description="Found episodes")
     total_count: Optional[int] = Field(default=None, description="Total result count")
 
-    @field_validator('episodes', mode='before')
+    @field_validator("episodes", mode="before")
     @classmethod
     def convert_episodes_to_dict(cls, v: Any) -> Any:
         """Convert episode strings to dictionaries if needed."""
@@ -46,6 +46,7 @@ class SearchResult(BaseModel):
                 # Try to parse as JSON, if that fails, create a simple dict
                 try:
                     import json
+
                     result.append(json.loads(episode))
                 except (json.JSONDecodeError, ValueError):
                     # If it's not valid JSON, create a simple dict with the string as content

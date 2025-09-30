@@ -302,8 +302,12 @@ class TestRegistryConfig:
             assert instances1 == instances2
 
             # Modifying one should not affect the other
-            instances1["new_key"] = "new_value"
-            assert "new_key" not in instances2
+            # Test copy behavior by adding a new key-value pair
+            original_length = len(instances1)
+            test_instance = {"api_key": "test", "base_url": "test", "description": "test"}
+            instances1["test_key"] = test_instance
+            assert len(instances1) == original_length + 1
+            assert len(instances2) == original_length  # Other dict should be unchanged
 
     def test_load_instances_default_base_url(self):
         """Test loading instances with default base URL."""
@@ -370,7 +374,7 @@ class TestRegistryConfig:
 
     def test_load_instances_empty_config(self):
         """Test loading instances with empty config."""
-        config_content = {"instances": {}}
+        config_content: dict = {"instances": {}}
 
         with patch("os.path.exists") as mock_exists, patch(
             "os.path.dirname"

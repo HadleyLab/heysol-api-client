@@ -4,7 +4,6 @@ Integration tests for CLI help functionality.
 Tests that CLI commands display help correctly and handle help flags properly.
 """
 
-import pytest
 import subprocess
 import sys
 from pathlib import Path
@@ -21,7 +20,7 @@ class TestCLIHelp:
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent.parent.parent,
-            timeout=10
+            timeout=10,
         )
 
         # Should exit with code 0 (help displayed successfully)
@@ -33,7 +32,10 @@ class TestCLIHelp:
     def test_memory_subcommand_help(self):
         """Test memory subcommand help."""
         result = subprocess.run(
-            [sys.executable, "-c", """
+            [
+                sys.executable,
+                "-c",
+                """
 import sys
 sys.path.insert(0, 'src')
 try:
@@ -43,11 +45,12 @@ except SystemExit:
     pass  # Expected for --help
 except Exception as e:
     print(f"Help displayed with error: {e}")
-"""],
+""",
+            ],
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent.parent.parent,
-            timeout=10
+            timeout=10,
         )
 
         # Check that help was attempted (may have formatting errors)
@@ -56,7 +59,10 @@ except Exception as e:
     def test_logs_subcommand_help(self):
         """Test logs subcommand help."""
         result = subprocess.run(
-            [sys.executable, "-c", """
+            [
+                sys.executable,
+                "-c",
+                """
 import sys
 sys.path.insert(0, 'src')
 try:
@@ -66,11 +72,12 @@ except SystemExit:
     pass  # Expected for --help
 except Exception as e:
     print(f"Help displayed with error: {e}")
-"""],
+""",
+            ],
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent.parent.parent,
-            timeout=10
+            timeout=10,
         )
 
         # Check that help was attempted
@@ -79,7 +86,10 @@ except Exception as e:
     def test_spaces_subcommand_help(self):
         """Test spaces subcommand help."""
         result = subprocess.run(
-            [sys.executable, "-c", """
+            [
+                sys.executable,
+                "-c",
+                """
 import sys
 sys.path.insert(0, 'src')
 try:
@@ -89,11 +99,12 @@ except SystemExit:
     pass  # Expected for --help
 except Exception as e:
     print(f"Help displayed with error: {e}")
-"""],
+""",
+            ],
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent.parent.parent,
-            timeout=10
+            timeout=10,
         )
 
         # Check that help was attempted
@@ -102,7 +113,10 @@ except Exception as e:
     def test_registry_subcommand_help(self):
         """Test registry subcommand help."""
         result = subprocess.run(
-            [sys.executable, "-c", """
+            [
+                sys.executable,
+                "-c",
+                """
 import sys
 sys.path.insert(0, 'src')
 try:
@@ -112,11 +126,12 @@ except SystemExit:
     pass  # Expected for --help
 except Exception as e:
     print(f"Help displayed with error: {e}")
-"""],
+""",
+            ],
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent.parent.parent,
-            timeout=10
+            timeout=10,
         )
 
         # Check that help was attempted
@@ -125,7 +140,10 @@ except Exception as e:
     def test_profile_subcommand_help(self):
         """Test profile subcommand help."""
         result = subprocess.run(
-            [sys.executable, "-c", """
+            [
+                sys.executable,
+                "-c",
+                """
 import sys
 sys.path.insert(0, 'src')
 try:
@@ -135,11 +153,12 @@ except SystemExit:
     pass  # Expected for --help
 except Exception as e:
     print(f"Help displayed with error: {e}")
-"""],
+""",
+            ],
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent.parent.parent,
-            timeout=10
+            timeout=10,
         )
 
         # Check that help was attempted
@@ -148,7 +167,10 @@ except Exception as e:
     def test_tools_subcommand_help(self):
         """Test tools subcommand help."""
         result = subprocess.run(
-            [sys.executable, "-c", """
+            [
+                sys.executable,
+                "-c",
+                """
 import sys
 sys.path.insert(0, 'src')
 try:
@@ -158,11 +180,12 @@ except SystemExit:
     pass  # Expected for --help
 except Exception as e:
     print(f"Help displayed with error: {e}")
-"""],
+""",
+            ],
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent.parent.parent,
-            timeout=10
+            timeout=10,
         )
 
         # Check that help was attempted
@@ -171,7 +194,10 @@ except Exception as e:
     def test_webhooks_subcommand_help(self):
         """Test webhooks subcommand help."""
         result = subprocess.run(
-            [sys.executable, "-c", """
+            [
+                sys.executable,
+                "-c",
+                """
 import sys
 sys.path.insert(0, 'src')
 try:
@@ -181,11 +207,12 @@ except SystemExit:
     pass  # Expected for --help
 except Exception as e:
     print(f"Help displayed with error: {e}")
-"""],
+""",
+            ],
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent.parent.parent,
-            timeout=10
+            timeout=10,
         )
 
         # Check that help was attempted
@@ -204,8 +231,14 @@ class TestCLICommands:
         command_names = [cmd.name for cmd in commands]
 
         expected_commands = [
-            "ingest", "search", "search-graph", "queue", "episode",
-            "move", "copy", "copy-by-id"
+            "ingest",
+            "search",
+            "search-graph",
+            "queue",
+            "episode",
+            "move",
+            "copy",
+            "copy-by-id",
         ]
 
         for cmd in expected_commands:
@@ -220,8 +253,14 @@ class TestCLICommands:
         command_names = [cmd.name for cmd in commands]
 
         expected_commands = [
-            "list", "delete", "delete-by-source", "get", "get-by-source",
-            "status", "copy", "sources"
+            "list",
+            "delete",
+            "delete-by-source",
+            "get",
+            "get-by-source",
+            "status",
+            "copy",
+            "sources",
         ]
 
         for cmd in expected_commands:
@@ -235,9 +274,7 @@ class TestCLICommands:
         commands = app.registered_commands
         command_names = [cmd.name for cmd in commands]
 
-        expected_commands = [
-            "list", "create", "get", "update", "delete", "bulk-ops"
-        ]
+        expected_commands = ["list", "create", "get", "update", "delete", "bulk-ops"]
 
         for cmd in expected_commands:
             assert cmd in command_names, f"Command '{cmd}' not found in spaces commands"
@@ -250,9 +287,7 @@ class TestCLICommands:
         commands = app.registered_commands
         command_names = [cmd.name for cmd in commands]
 
-        expected_commands = [
-            "register", "list", "show", "use"
-        ]
+        expected_commands = ["register", "list", "show", "use"]
 
         for cmd in expected_commands:
             assert cmd in command_names, f"Command '{cmd}' not found in registry commands"
@@ -291,9 +326,7 @@ class TestCLICommands:
         commands = app.registered_commands
         command_names = [cmd.name for cmd in commands]
 
-        expected_commands = [
-            "create", "list", "get", "update", "delete"
-        ]
+        expected_commands = ["create", "list", "get", "update", "delete"]
 
         for cmd in expected_commands:
             assert cmd in command_names, f"Command '{cmd}' not found in webhooks commands"

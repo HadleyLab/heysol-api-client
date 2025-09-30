@@ -38,7 +38,7 @@ class TestHeySolMCPClient:
             init_response.json.return_value = {"result": {"capabilities": {}}}
             init_response.headers = {
                 "Mcp-Session-Id": "session-123",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
             init_response.text = '{"result": {"capabilities": {}}}'
 
@@ -56,7 +56,12 @@ class TestHeySolMCPClient:
             validation_response.json.return_value = {"result": {"capabilities": {}}}
             validation_response.headers = {"Content-Type": "application/json"}
 
-            mock_post.side_effect = [validation_response, init_response, tools_response, tools_response]
+            mock_post.side_effect = [
+                validation_response,
+                init_response,
+                tools_response,
+                tools_response,
+            ]
 
             with patch("heysol.clients.mcp_client.HeySolConfig") as mock_config:
                 mock_config_instance = Mock()

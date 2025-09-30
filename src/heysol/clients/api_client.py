@@ -746,7 +746,9 @@ class HeySolAPIClient:
             raise ValidationError("Webhook ID is required")
 
         # Create and validate request model
-        request = UpdateWebhookRequest(url=HttpUrl(url), events=events, secret=secret, active=active)
+        request = UpdateWebhookRequest(
+            url=HttpUrl(url), events=events, secret=secret, active=active
+        )
 
         # Use form data format as specified in API
         data = {

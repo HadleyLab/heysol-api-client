@@ -115,8 +115,9 @@ def test_search_endpoint():
 
         # Validate response structure - search returns SearchResult object
         from heysol.models.responses import SearchResult
+
         assert isinstance(search_result, SearchResult)
-        assert hasattr(search_result, 'episodes')
+        assert hasattr(search_result, "episodes")
         assert isinstance(search_result.episodes, list)
 
         client.close()
@@ -234,6 +235,7 @@ def test_error_handling_comprehensive():
         try:
             result = client.search("", limit=1)  # Empty query
             from heysol.models.responses import SearchResult
+
             assert isinstance(result, SearchResult)
         except Exception:
             # May fail but should not crash
@@ -305,6 +307,7 @@ def test_api_response_consistency():
         search2 = client.search("consistency test", limit=1)
 
         from heysol.models.responses import SearchResult
+
         assert isinstance(search1, SearchResult)
         assert isinstance(search2, SearchResult)
 

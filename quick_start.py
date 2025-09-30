@@ -29,12 +29,19 @@
 
 # Import required modules
 import os
+import sys
+from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
 
 # Load environment variables from .env file if it exists
 load_dotenv()
+
+# Add src to path for local imports
+src_path = Path(__file__).parent / "src"
+if str(src_path) not in sys.path:
+    sys.path.insert(0, str(src_path))
 
 # Import HeySol clients
 try:
@@ -161,12 +168,19 @@ for space in existing_spaces:
 # Create new space if needed
 if not space_id:
     print(f"   🆕 Creating new space: '{space_name}'...")
-    space_id = client.create_space(space_name, space_description)
-    if space_id:
+    space_result = client.create_space(space_name, space_description)
+    if space_result and isinstance(space_result, dict) and "space_id" in space_result:
+        space_id = space_result["space_id"]
+        print(f"   ✅ Created space: {space_id}")
+    elif isinstance(space_result, str):
+        space_id = space_result
         print(f"   ✅ Created space: {space_id}")
 
 print(f"\n📊 Ready to use space: {space_name}")
-print(f"   ID: {space_id}")
+if space_id:
+    print(f"   ID: {space_id[:16]}...")
+else:
+    print("   ID: None")
 print(f"   Description: {space_description}")
 
 
@@ -220,7 +234,10 @@ print("=" * 40)
 search_query = "treatment"
 print(f"   🔎 Query: '{search_query}'")
 if space_id:
-    print(f"   📍 Space: {space_name} ({space_id[:16]}...)")
+    space_id_display = (
+        space_id[:16] + "..." if isinstance(space_id, str) else str(space_id)[:16] + "..."
+    )
+    print(f"   📍 Space: {space_name} ({space_id_display})")
 else:
     print(f"   📍 Space: {space_name} (no space ID)")
 

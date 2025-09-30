@@ -351,6 +351,7 @@ def test_space_search_functionality():
         try:
             search_result = client.search("space", limit=1)
             from heysol.models.responses import SearchResult
+
             assert isinstance(search_result, SearchResult)
         except Exception:
             # Search might not be available or might fail

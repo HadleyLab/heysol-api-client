@@ -4,7 +4,7 @@ High-level operations for the HeySol client, such as data transfers.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any, Dict
 
 if TYPE_CHECKING:
     from .client import HeySolClient

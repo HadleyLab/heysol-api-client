@@ -7,7 +7,7 @@ from typing import Optional, Tuple
 
 import typer
 
-from ..heysol.registry_config import RegistryConfig
+from heysol.registry_config import RegistryConfig
 
 
 def resolve_credentials(

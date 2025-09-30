@@ -144,8 +144,12 @@ class TestRegistryIntegration:
 
         # Modifying one should not affect the other
         if instances1:
-            instances1["new_key"] = "new_value"
-            assert "new_key" not in instances2
+            # Test copy behavior by adding a new key-value pair
+            original_length = len(instances1)
+            test_instance = {"api_key": "test", "base_url": "test", "description": "test"}
+            instances1["test_key"] = test_instance
+            assert len(instances1) == original_length + 1
+            assert len(instances2) == original_length  # Other dict should be unchanged
 
     def test_registry_config_initialization_with_real_env_file(self):
         """Test RegistryConfig initialization with real env file."""
