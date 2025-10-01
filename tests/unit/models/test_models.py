@@ -181,7 +181,7 @@ class TestRegisterWebhookRequest:
     def test_register_webhook_validation(self):
         """Test register webhook request validation."""
         with pytest.raises(ValidationError, match="Input should be a valid URL"):
-            RegisterWebhookRequest(url="not-a-url", secret="secret")
+            RegisterWebhookRequest(url="not-a-url", secret="secret")  # type: ignore[arg-type]
 
         with pytest.raises(ValidationError, match="String should have at least 1 character"):
             RegisterWebhookRequest(url=HttpUrl("https://example.com"), secret="")
@@ -216,7 +216,7 @@ class TestUpdateWebhookRequest:
         """Test update webhook request validation."""
         with pytest.raises(ValidationError, match="Input should be a valid URL"):
             UpdateWebhookRequest(
-                url="not-a-url", events=["push"], secret="secret"
+                url="not-a-url", events=["push"], secret="secret"  # type: ignore[arg-type]
             )
 
         with pytest.raises(ValidationError, match="String should have at least 1 character"):
