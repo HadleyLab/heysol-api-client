@@ -1,8 +1,12 @@
 # 🚀 HeySol API Client
 
 [![PyPI version](https://badge.fury.io/py/heysol-api-client.svg)](https://pypi.org/project/heysol-api-client/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/heysol-api-client.svg)](https://pypi.org/project/heysol-api-client/)
 [![Python versions](https://img.shields.io/pypi/pyversions/heysol-api-client.svg)](https://pypi.org/project/heysol-api-client/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub last commit](https://img.shields.io/github/last-commit/HadleyLab/heysol-api-client.svg)](https://github.com/HadleyLab/heysol-api-client)
+[![GitHub issues](https://img.shields.io/github/issues/HadleyLab/heysol-api-client.svg)](https://github.com/HadleyLab/heysol-api-client/issues)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 **Seamlessly integrate HeySol's powerful memory and AI capabilities into your Python applications.**
 
