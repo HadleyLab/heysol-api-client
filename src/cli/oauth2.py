@@ -8,13 +8,14 @@ import typer
 
 from heysol import HeySolError
 
-from .common import create_client, format_json_output, get_auth_from_global
+from .common import format_json_output, get_client_from_context
 
 app = typer.Typer()
 
 
 @app.command("authorize")
 def oauth2_authorize(
+    ctx: typer.Context,
     redirect_uri: Optional[str] = typer.Option(None, help="Redirect URI"),
     scope: Optional[str] = typer.Option(None, help="OAuth2 scope"),
     api_key: Optional[str] = typer.Option(
@@ -27,16 +28,18 @@ def oauth2_authorize(
     """OAuth2 authorization endpoint."""
     try:
         # Use global credentials
-        resolved_api_key, resolved_base_url = get_auth_from_global()
+        client = get_client_from_context(ctx)
+        resolved_api_key = client.api_key
+        resolved_base_url = client.base_url
+        
         if api_key:
             resolved_api_key = api_key
         if base_url:
             resolved_base_url = base_url
 
-        client = create_client(api_key=resolved_api_key, base_url=resolved_base_url)
         # This would typically redirect to OAuth2 authorization URL
         # For now, we'll show the authorization URL
-        auth_url = f"{client.base_url}/oauth2/authorize"
+        auth_url = f"{resolved_base_url}/oauth2/authorize"
         if redirect_uri:
             auth_url += f"?redirect_uri={redirect_uri}"
         if scope:
@@ -54,6 +57,7 @@ def oauth2_authorize(
 
 @app.command("token")
 def oauth2_token(
+    ctx: typer.Context,
     grant_type: str = typer.Option("authorization_code", help="OAuth2 grant type"),
     code: Optional[str] = typer.Option(None, help="Authorization code"),
     redirect_uri: Optional[str] = typer.Option(None, help="Redirect URI"),
@@ -69,13 +73,14 @@ def oauth2_token(
     """OAuth2 token endpoint."""
     try:
         # Use global credentials
-        resolved_api_key, resolved_base_url = get_auth_from_global()
+        client = get_client_from_context(ctx)
+        resolved_api_key = client.api_key
+        resolved_base_url = client.base_url
+        
         if api_key:
             resolved_api_key = api_key
         if base_url:
             resolved_base_url = base_url
-
-        client = create_client(api_key=resolved_api_key, base_url=resolved_base_url)
 
         # Prepare token request data
         token_data = {
@@ -90,7 +95,7 @@ def oauth2_token(
             token_data["redirect_uri"] = redirect_uri
 
         # Make token request
-        token_url = f"{client.base_url}/oauth2/token"
+        token_url = f"{resolved_base_url}/oauth2/token"
         import requests
 
         response = requests.post(
@@ -111,6 +116,7 @@ def oauth2_token(
 
 @app.command("userinfo")
 def oauth2_userinfo(
+    ctx: typer.Context,
     access_token: Optional[str] = typer.Option(None, help="Access token"),
     api_key: Optional[str] = typer.Option(
         None, help="HeySol API key (overrides environment variable)"
@@ -122,19 +128,20 @@ def oauth2_userinfo(
     """OAuth2 user info endpoint."""
     try:
         # Use global credentials
-        resolved_api_key, resolved_base_url = get_auth_from_global()
+        client = get_client_from_context(ctx)
+        resolved_api_key = client.api_key
+        resolved_base_url = client.base_url
+        
         if api_key:
             resolved_api_key = api_key
         if base_url:
             resolved_base_url = base_url
 
-        client = create_client(api_key=resolved_api_key, base_url=resolved_base_url)
-
         headers = {}
         if access_token:
             headers["Authorization"] = f"Bearer {access_token}"
 
-        userinfo_url = f"{client.base_url}/oauth2/userinfo"
+        userinfo_url = f"{resolved_base_url}/oauth2/userinfo"
         import requests
 
         response = requests.get(userinfo_url, headers=headers)
@@ -151,6 +158,7 @@ def oauth2_userinfo(
 
 @app.command("introspect")
 def oauth2_introspect(
+    ctx: typer.Context,
     token: str,
     token_type: str = typer.Option("access_token", help="Token type"),
     client_id: Optional[str] = typer.Option(None, help="OAuth2 client ID"),
@@ -165,13 +173,14 @@ def oauth2_introspect(
     """OAuth2 token introspection endpoint."""
     try:
         # Use global credentials
-        resolved_api_key, resolved_base_url = get_auth_from_global()
+        client = get_client_from_context(ctx)
+        resolved_api_key = client.api_key
+        resolved_base_url = client.base_url
+        
         if api_key:
             resolved_api_key = api_key
         if base_url:
             resolved_base_url = base_url
-
-        client = create_client(api_key=resolved_api_key, base_url=resolved_base_url)
 
         # Prepare introspection request data
         introspect_data = {
@@ -182,7 +191,7 @@ def oauth2_introspect(
         }
 
         # Make introspection request
-        introspect_url = f"{client.base_url}/oauth2/introspect"
+        introspect_url = f"{resolved_base_url}/oauth2/introspect"
         import requests
 
         response = requests.post(

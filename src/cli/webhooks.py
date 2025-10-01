@@ -6,13 +6,14 @@ from typing import List, Optional
 
 import typer
 
-from .common import create_client, format_json_output, get_auth_from_global
+from .common import format_json_output, get_client_from_context
 
 app = typer.Typer()
 
 
 @app.command("create")
 def webhooks_create(
+    ctx: typer.Context,
     url: str,
     secret: str = typer.Option(..., help="Webhook secret"),
     events: Optional[List[str]] = typer.Option(
@@ -20,22 +21,20 @@ def webhooks_create(
     ),
 ) -> None:
     """Create a new webhook."""
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
 
-    client = create_client(api_key=api_key, base_url=base_url)
     result = client.register_webhook(url=url, events=events, secret=secret)
     typer.echo(format_json_output(result, pretty))
     client.close()
 
 
 @app.command("get")
-def webhooks_get(webhook_id: str) -> None:
+def webhooks_get(ctx: typer.Context, webhook_id: str) -> None:
     """Get webhook details."""
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
 
-    client = create_client(api_key=api_key, base_url=base_url)
     result = client.get_webhook(webhook_id=webhook_id)
     typer.echo(format_json_output(result, pretty))
     client.close()
@@ -43,16 +42,16 @@ def webhooks_get(webhook_id: str) -> None:
 
 @app.command("list")
 def webhooks_list(
+    ctx: typer.Context,
     space_id: Optional[str] = typer.Option(None, help="Space ID"),
     active: Optional[bool] = typer.Option(None, help="Filter by active status"),
     limit: int = typer.Option(100, help="Result limit"),
     offset: int = typer.Option(0, help="Result offset"),
 ) -> None:
     """List webhooks."""
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
 
-    client = create_client(api_key=api_key, base_url=base_url)
     result = client.list_webhooks(space_id=space_id, active=active, limit=limit, offset=offset)
     typer.echo(format_json_output(result, pretty))
     client.close()
@@ -60,6 +59,7 @@ def webhooks_list(
 
 @app.command("update")
 def webhooks_update(
+    ctx: typer.Context,
     webhook_id: str,
     url: str,
     events: List[str] = typer.Option(..., help="Events to subscribe to (can specify multiple)"),
@@ -67,10 +67,9 @@ def webhooks_update(
     active: bool = typer.Option(True, help="Webhook active status"),
 ) -> None:
     """Update webhook properties."""
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
 
-    client = create_client(api_key=api_key, base_url=base_url)
     result = client.update_webhook(
         webhook_id=webhook_id, url=url, events=events, secret=secret, active=active
     )
@@ -80,17 +79,18 @@ def webhooks_update(
 
 @app.command("delete")
 def webhooks_delete(
-    webhook_id: str, confirm: bool = typer.Option(False, help="Confirm deletion (required)")
+    ctx: typer.Context,
+    webhook_id: str,
+    confirm: bool = typer.Option(False, help="Confirm deletion (required)"),
 ) -> None:
     """Delete a webhook."""
     if not confirm:
         typer.echo("Webhook deletion requires --confirm flag for safety", err=True)
         raise typer.Exit(1)
 
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
 
-    client = create_client(api_key=api_key, base_url=base_url)
     result = client.delete_webhook(webhook_id=webhook_id, confirm=confirm)
     typer.echo(format_json_output(result, pretty))
     client.close()

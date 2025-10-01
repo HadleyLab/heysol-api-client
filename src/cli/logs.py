@@ -6,13 +6,14 @@ from typing import Optional
 
 import typer
 
-from .common import create_client, format_json_output, get_auth_from_global
+from .common import format_json_output, get_client_from_context
 
 app = typer.Typer()
 
 
 @app.command("list")
 def logs_list(
+    ctx: typer.Context,
     space_id: Optional[str] = typer.Option(None, help="Space ID"),
     source: Optional[str] = typer.Option(None, help="Filter by source"),
     limit: int = typer.Option(100, help="Result limit"),
@@ -22,10 +23,8 @@ def logs_list(
     end_date: Optional[str] = typer.Option(None, help="End date filter"),
 ) -> None:
     """Get ingestion logs."""
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
-
-    client = create_client(api_key=api_key, base_url=base_url)
 
     if space_id:
         spaces = client.get_spaces()
@@ -57,17 +56,18 @@ def logs_list(
 
 @app.command("delete")
 def logs_delete(
-    log_id: str, confirm: bool = typer.Option(False, help="Confirm deletion (required)")
+    ctx: typer.Context,
+    log_id: str,
+    confirm: bool = typer.Option(False, help="Confirm deletion (required)"),
 ) -> None:
     """Delete a specific log entry by ID."""
     if not confirm:
         typer.echo("Deletion requires --confirm flag for safety", err=True)
         raise typer.Exit(1)
 
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
 
-    client = create_client(api_key=api_key, base_url=base_url)
     result = client.delete_log_entry(log_id=log_id)
     typer.echo(format_json_output(result, pretty))
     client.close()
@@ -75,6 +75,7 @@ def logs_delete(
 
 @app.command("delete-by-source")
 def logs_delete_by_source(
+    ctx: typer.Context,
     source: str,
     space_id: Optional[str] = typer.Option(None, help="Space ID to filter logs"),
     confirm: bool = typer.Option(False, help="Confirm deletion (required)"),
@@ -85,10 +86,8 @@ def logs_delete_by_source(
         typer.echo("Deletion requires --confirm flag for safety", err=True)
         raise typer.Exit(1)
 
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
-
-    client = create_client(api_key=api_key, base_url=base_url)
 
     if space_id:
         spaces = client.get_spaces()
@@ -158,12 +157,11 @@ def logs_delete_by_source(
 
 
 @app.command("get")
-def logs_get(log_id: str) -> None:
+def logs_get(ctx: typer.Context, log_id: str) -> None:
     """Get a specific log by ID."""
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
 
-    client = create_client(api_key=api_key, base_url=base_url)
     result = client.get_specific_log(log_id=log_id)
     typer.echo(format_json_output(result, pretty))
     client.close()
@@ -171,6 +169,7 @@ def logs_get(log_id: str) -> None:
 
 @app.command("get-by-source")
 def logs_get_by_source(
+    ctx: typer.Context,
     source: str,
     space_id: Optional[str] = typer.Option(None, help="Space ID to filter logs"),
     limit: int = typer.Option(100, help="Result limit"),
@@ -180,10 +179,8 @@ def logs_get_by_source(
     end_date: Optional[str] = typer.Option(None, help="End date filter"),
 ) -> None:
     """Get logs filtered by source using efficient streaming."""
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
-
-    client = create_client(api_key=api_key, base_url=base_url)
 
     if space_id:
         spaces = client.get_spaces()
@@ -212,14 +209,13 @@ def logs_get_by_source(
 
 @app.command("status")
 def logs_status(
+    ctx: typer.Context,
     space_id: Optional[str] = typer.Option(None, help="Space ID to check status for"),
     run_id: Optional[str] = typer.Option(None, help="Run ID from ingestion response"),
 ) -> None:
     """Check ingestion processing status."""
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
-
-    client = create_client(api_key=api_key, base_url=base_url)
 
     if space_id:
         spaces = client.get_spaces()
@@ -238,6 +234,7 @@ def logs_status(
 
 @app.command("copy")
 def logs_copy(
+    ctx: typer.Context,
     log_id: str,
     new_source: Optional[str] = typer.Option(
         None, help="New source identifier (preserves original if not specified)"
@@ -255,10 +252,8 @@ def logs_copy(
     """Copy a log entry with all metadata preserved, allowing selective field overrides."""
     import json
 
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
-
-    client = create_client(api_key=api_key, base_url=base_url)
 
     # Get the original log entry
     try:
@@ -295,6 +290,7 @@ def logs_copy(
 
 @app.command("sources")
 def logs_sources(
+    ctx: typer.Context,
     space_id: Optional[str] = typer.Option(None, help="Space ID to filter logs"),
     limit: int = typer.Option(1000, help="Result limit for source extraction"),
     offset: int = typer.Option(0, help="Result offset"),
@@ -303,10 +299,8 @@ def logs_sources(
     end_date: Optional[str] = typer.Option(None, help="End date filter"),
 ) -> None:
     """List unique sources from memory logs."""
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
-
-    client = create_client(api_key=api_key, base_url=base_url)
 
     if space_id:
         spaces = client.get_spaces()

@@ -360,6 +360,112 @@ class HeySolMCPClient:
         except HeySolError:
             raise HeySolError("get_spaces tool not available via MCP")
 
+    def ingest(
+        self,
+        message: str,
+        space_id: Optional[str] = None,
+        source: Optional[str] = None,
+        session_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Ingest data using MCP protocol.
+
+        Args:
+            message: Content to ingest
+            space_id: Target space ID for ingestion
+            source: Source identifier for the data
+            session_id: Session ID for tracking
+
+        Returns:
+            Ingestion result with run ID and metadata
+        """
+        return self.ingest_via_mcp(
+            message=message,
+            space_id=space_id,
+            source=source,
+            session_id=session_id,
+        )
+
+    def search(
+        self,
+        query: str,
+        space_ids: Optional[List[str]] = None,
+        limit: int = 10,
+        valid_at: Optional[str] = None,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Search memories using MCP protocol.
+
+        Args:
+            query: Search query string
+            space_ids: List of space IDs to search in
+            limit: Maximum number of results to return
+            valid_at: Point-in-time reference for temporal queries
+            start_time: Start time for time-bounded searches
+            end_time: End time for time-bounded searches
+
+        Returns:
+            Search results with episodes and metadata
+        """
+        return self.search_via_mcp(
+            query=query,
+            space_ids=space_ids,
+            limit=limit,
+            valid_at=valid_at,
+            start_time=start_time,
+            end_time=end_time,
+        )
+
+    def get_spaces(self) -> List[Dict[str, Any]]:
+        """
+        Get available memory spaces using MCP protocol.
+
+        Returns:
+            List of space information dictionaries
+        """
+        try:
+            result = self.get_spaces_via_mcp()
+            # Handle different response formats
+            if isinstance(result, dict):
+                spaces = result.get("spaces", [])
+                if isinstance(spaces, list):
+                    return spaces
+                # Try to get spaces from different response structure
+                data = result.get("data", [])
+                if isinstance(data, list):
+                    return data
+            elif isinstance(result, list):
+                return result
+            return []
+        except HeySolError:
+            # Fallback: try to get spaces via memory_get_spaces tool
+            try:
+                result = self.get_memory_spaces_via_mcp()
+                if isinstance(result, dict):
+                    # Handle MCP response format: content[0].text contains JSON string
+                    content = result.get("content", [])
+                    if isinstance(content, list) and len(content) > 0:
+                        item = content[0]
+                        if isinstance(item, dict):
+                            text_content = item.get("text", "")
+                            if text_content:
+                                try:
+                                    # Parse the JSON string in the text field
+                                    parsed = json.loads(text_content)
+                                    if isinstance(parsed, list):
+                                        return parsed
+                                except json.JSONDecodeError:
+                                    pass
+                    # Fallback to direct spaces field
+                    spaces = result.get("spaces", [])
+                    if isinstance(spaces, list):
+                        return spaces
+                return []
+            except HeySolError:
+                raise HeySolError("Unable to retrieve spaces via MCP")
+
     # Advanced MCP-only operations
     def delete_logs_by_source(
         self, source: str, space_id: Optional[str] = None, confirm: bool = False

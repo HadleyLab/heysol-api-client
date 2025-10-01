@@ -211,8 +211,11 @@ class HeySolAPIClient:
             spaceId=space_id,
         )
 
-        # Convert to API payload format
-        payload = request.model_dump(by_alias=True)
+        # Convert to API payload format, excluding spaceId if None
+        payload = request.model_dump(by_alias=True, exclude_none=True)
+        # Additional check: remove spaceId if it's None/null
+        if payload.get("spaceId") is None:
+            payload.pop("spaceId", None)
         return self._make_request("POST", "add", data=payload)
 
     def copy_log_entry(

@@ -35,14 +35,18 @@ from .webhooks import app as webhooks_app
 app = typer.Typer()
 
 # Global state for subcommands
-_global_api_key = None
-_global_base_url = None
-_global_source = None
-_global_skip_mcp = False
+class GlobalState:
+    api_key: Optional[str] = None
+    base_url: Optional[str] = None
+    source: Optional[str] = None
+    skip_mcp: bool = False
+
+state = GlobalState()
 
 
 @app.callback()
 def cli_callback(
+    ctx: typer.Context,
     api_key: Optional[str] = typer.Option(
         None, help="HeySol API key (overrides environment variable)"
     ),
@@ -152,11 +156,11 @@ def cli_callback(
     resolved_base_url = resolved_base_url or "https://core.heysol.ai/api/v1"
 
     # Store in global state for subcommands
-    global _global_api_key, _global_base_url, _global_source, _global_skip_mcp
-    _global_api_key = resolved_api_key
-    _global_base_url = resolved_base_url
-    _global_source = source
-    _global_skip_mcp = skip_mcp
+    state.api_key = resolved_api_key
+    state.base_url = resolved_base_url
+    state.source = source
+    state.skip_mcp = skip_mcp
+    ctx.obj = state
 
 
 # Add command groups with detailed descriptions

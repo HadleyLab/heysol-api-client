@@ -421,7 +421,7 @@ features = [
         "importance": "Critical",
         "unified_impact": "Always available via API fallback",
         "api_impact": "Native implementation",
-        "mcp_impact": "May not be available",
+        "mcp_impact": "✅ Now Available - MCP protocol operations",
     },
     {
         "name": "Space Management",
@@ -439,7 +439,7 @@ features = [
         "importance": "Critical",
         "unified_impact": "Enhanced via MCP when available",
         "api_impact": "Standard semantic search",
-        "mcp_impact": "Advanced search capabilities",
+        "mcp_impact": "✅ Now Available - MCP protocol search",
     },
     {
         "name": "Log Management",
@@ -631,12 +631,12 @@ if working_clients:
 # #### Space Management
 # - **Direct API**: Fastest for simple operations
 # - **Unified**: Good performance with reliability benefits
-# - **MCP**: May not support all space operations
+# - **MCP**: ✅ Now Available - Full space management support
 #
 # #### Data Ingestion
 # - **Direct API**: Predictable performance
 # - **Unified**: Reliable with error recovery
-# - **MCP**: Advanced ingestion features when available
+# - **MCP**: ✅ Now Available - Full ingestion support via MCP protocol
 #
 # **Production Insight**: For most applications, the performance difference is negligible compared to network latency. Choose based on feature requirements and reliability needs.
 
@@ -764,7 +764,8 @@ if clients["unified"] and clients["unified"]["client"]:
         # This will use MCP if available, API if not
         result = unified_client.search("fallback test", limit=1)
         print("   ✅ Search completed successfully")
-        print(f"   📊 Results: {len(result.episodes) if hasattr(result, 'episodes') else 0}")
+        episodes = result.episodes if hasattr(result, "episodes") else []
+        print(f"   📊 Results: {len(episodes)}")
         print("   💡 Automatic method selection working")
     except Exception as e:
         print(f"   ❌ Search failed: {e}")

@@ -6,13 +6,14 @@ from typing import List, Optional
 
 import typer
 
-from .common import create_client, format_json_output, get_auth_from_global
+from .common import format_json_output, get_client_from_context
 
 app = typer.Typer(help="Memory operations")
 
 
 @app.command("ingest")
 def memory_ingest(
+    ctx: typer.Context,
     message: Optional[str] = typer.Argument(None, help="Message to ingest"),
     file: Optional[str] = typer.Option(None, help="File containing message to ingest"),
     space_id: Optional[str] = typer.Option(None, help="Space ID"),
@@ -23,7 +24,7 @@ def memory_ingest(
         typer.echo("Message or file is required", err=True)
         raise typer.Exit(1)
 
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
 
     final_message = message
@@ -35,7 +36,6 @@ def memory_ingest(
         typer.echo("Message or file is required", err=True)
         raise typer.Exit(1)
 
-    client = create_client(api_key=api_key, base_url=base_url)
     result = client.ingest(message=final_message, space_id=space_id, session_id=session_id)
     typer.echo(format_json_output(result, pretty))
     client.close()
@@ -43,16 +43,16 @@ def memory_ingest(
 
 @app.command("search")
 def memory_search(
+    ctx: typer.Context,
     query: str,
     space_id: Optional[str] = typer.Option(None, help="Space ID"),
     limit: int = typer.Option(10, help="Result limit"),
     include_invalidated: bool = typer.Option(False, help="Include invalidated results"),
 ) -> None:
     """Search memory."""
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
 
-    client = create_client(api_key=api_key, base_url=base_url)
     result = client.search(
         query=query,
         space_ids=[space_id] if space_id else None,
@@ -65,6 +65,7 @@ def memory_search(
 
 @app.command("search-graph")
 def memory_search_graph(
+    ctx: typer.Context,
     query: str,
     space_id: Optional[str] = typer.Option(None, help="Space ID"),
     limit: int = typer.Option(10, help="Result limit"),
@@ -72,10 +73,9 @@ def memory_search_graph(
     include_metadata: bool = typer.Option(True, help="Include metadata"),
 ) -> None:
     """Search knowledge graph."""
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
 
-    client = create_client(api_key=api_key, base_url=base_url)
     result = client.search_knowledge_graph(
         query=query,
         space_id=space_id,
@@ -88,6 +88,7 @@ def memory_search_graph(
 
 @app.command("queue")
 def memory_queue(
+    ctx: typer.Context,
     data: Optional[str] = typer.Argument(None, help="Data to queue"),
     file: Optional[str] = typer.Option(None, help="File containing data to queue"),
     space_id: Optional[str] = typer.Option(None, help="Space ID"),
@@ -100,7 +101,7 @@ def memory_queue(
         typer.echo("Data or file is required", err=True)
         raise typer.Exit(1)
 
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
 
     final_data = data
@@ -114,7 +115,6 @@ def memory_queue(
 
         parsed_metadata = json.loads(metadata)
 
-    client = create_client(api_key=api_key, base_url=base_url)
     result = client.add_data_to_ingestion_queue(
         data=final_data,
         space_id=space_id,
@@ -128,16 +128,16 @@ def memory_queue(
 
 @app.command("episode")
 def memory_episode(
+    ctx: typer.Context,
     episode_id: str,
     limit: int = typer.Option(100, help="Result limit"),
     offset: int = typer.Option(0, help="Result offset"),
     include_metadata: bool = typer.Option(True, help="Include metadata"),
 ) -> None:
     """Get episode facts."""
-    api_key, base_url = get_auth_from_global()
+    client = get_client_from_context(ctx)
     pretty = True  # Always pretty print
 
-    client = create_client(api_key=api_key, base_url=base_url)
     result = client.get_episode_facts(
         episode_id=episode_id, limit=limit, offset=offset, include_metadata=include_metadata
     )
@@ -147,6 +147,7 @@ def memory_episode(
 
 @app.command("move")
 def memory_move(
+    ctx: typer.Context,
     target_user: str = typer.Option(..., help="Target user instance name from registry"),
     target_api_key: Optional[str] = typer.Option(
         None, help="Target HeySol API key (if not using registry)"
@@ -171,8 +172,8 @@ def memory_move(
         typer.echo("Move operation requires --confirm flag for safety", err=True)
         raise typer.Exit(1)
 
-    source_api_key, source_base_url = get_auth_from_global()
-    pretty = True  # Always pretty print
+    source_client = get_client_from_context(ctx)
+    pretty = True
 
     from heysol.registry_config import RegistryConfig
 
@@ -187,7 +188,7 @@ def memory_move(
     if not target_instance:
         typer.echo(f"Target user '{target_user}' not found in registry.", err=True)
         raise typer.Exit(1)
-    # At this point target_instance is guaranteed to be not None
+
     target_api_key = target_instance.get("api_key")
     target_base_url = target_instance.get("base_url")
 
@@ -195,7 +196,7 @@ def memory_move(
         typer.echo(f"Target user '{target_user}' has incomplete configuration.", err=True)
         raise typer.Exit(1)
 
-    source_client = create_client(api_key=source_api_key, base_url=source_base_url)
+    from .common import create_client
     target_client = create_client(api_key=target_api_key, base_url=target_base_url)
 
     result = source_client.move_logs_to_instance(
@@ -216,6 +217,7 @@ def memory_move(
 
 @app.command("copy")
 def memory_copy(
+    ctx: typer.Context,
     target_user: str = typer.Option(..., help="Target user instance name from registry"),
     target_space_id: Optional[str] = typer.Option(None, help="Target space ID for copied logs"),
     target_session_id: Optional[str] = typer.Option(None, help="Target session ID for copied logs"),
@@ -231,8 +233,8 @@ def memory_copy(
         typer.echo("Copy operation requires --confirm flag for safety", err=True)
         raise typer.Exit(1)
 
-    source_api_key, source_base_url = get_auth_from_global()
-    pretty = True  # Always pretty print
+    source_client = get_client_from_context(ctx)
+    pretty = True
 
     from heysol.registry_config import RegistryConfig
 
@@ -247,11 +249,11 @@ def memory_copy(
     if not target_instance:
         typer.echo(f"Target user '{target_user}' not found in registry.", err=True)
         raise typer.Exit(1)
-    # At this point target_instance is guaranteed to be not None
+
     target_api_key = target_instance["api_key"]
     target_base_url = target_instance["base_url"]
 
-    source_client = create_client(api_key=source_api_key, base_url=source_base_url)
+    from .common import create_client
     target_client = create_client(api_key=target_api_key, base_url=target_base_url)
 
     result = source_client.move_logs_to_instance(
@@ -272,6 +274,7 @@ def memory_copy(
 
 @app.command("copy-by-id")
 def memory_copy_by_id(
+    ctx: typer.Context,
     log_id: str,
     target_user: str = typer.Option(..., help="Target user instance name from registry"),
     target_space_id: Optional[str] = typer.Option(None, help="Target space ID for copied log"),
@@ -282,8 +285,8 @@ def memory_copy_by_id(
     confirm: bool = typer.Option(False, help="Actually perform the copy operation"),
 ) -> None:
     """Copy a specific log by ID to target instance."""
-    source_api_key, source_base_url = get_auth_from_global()
-    pretty = True  # Always pretty print
+    source_client = get_client_from_context(ctx)
+    pretty = True
 
     from heysol.registry_config import RegistryConfig
 
@@ -298,11 +301,11 @@ def memory_copy_by_id(
     if not target_instance:
         typer.echo(f"Target user '{target_user}' not found in registry.", err=True)
         raise typer.Exit(1)
-    # At this point target_instance is guaranteed to be not None
+
     target_api_key = target_instance["api_key"]
     target_base_url = target_instance["base_url"]
 
-    source_client = create_client(api_key=source_api_key, base_url=source_base_url)
+    from .common import create_client
     target_client = create_client(api_key=target_api_key, base_url=target_base_url)
 
     source_log = source_client.get_specific_log(log_id=log_id)
